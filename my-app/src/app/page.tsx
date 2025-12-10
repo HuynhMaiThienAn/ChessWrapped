@@ -2,42 +2,55 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import Card from '@/components/ui/Card';
 
 export default function LandingPage() {
   const [username, setUsername] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username.trim()) {
-      router.push(`/user/${username}`);
-    }
+    if (!username.trim()) return;
+
+    setIsLoading(true);
+    router.push(`/user/${username.trim()}`);
   };
 
   return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-[#302e2b] text-white p-4">
-        <div className="max-w-md w-full space-y-8 text-center">
-          <h1 className="text-5xl font-black tracking-tighter text-[#81b64c]">
+
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-black text-[#81b64c] tracking-tighter">
             CHESS WRAPPED
           </h1>
-          <p className="text-zinc-400">Enter your Chess.com username to see your year in review.</p>
+          <p className="text-zinc-400 mt-2">
+            Enter your username to see your 2025 stats.
+          </p>
+        </div>
 
+        <Card className="w-full max-w-sm">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <input
-                type="text"
+            <Input
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username (e.g. hikaru)"
-                className="p-4 rounded-lg bg-[#262421] border border-zinc-700 text-white focus:outline-none focus:border-[#81b64c]"
+                placeholder="Username (e.g. Hikaru)"
+                autoFocus
             />
-            <button
+
+            <Button
                 type="submit"
-                className="p-4 rounded-lg bg-[#81b64c] font-bold text-white hover:bg-[#a3d160] transition-colors"
+                fullWidth
+                isLoading={isLoading}
+                disabled={!username.trim()}
             >
-              GENERATE REPORT
-            </button>
+              GENERATE
+            </Button>
           </form>
-        </div>
+        </Card>
+
       </main>
   );
 }
