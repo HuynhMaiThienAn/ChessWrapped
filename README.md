@@ -1,3 +1,51 @@
+# ChessWrapped 2025
+
+**A "Spotify Wrapped" style experience for Chess.com users, built with Next.js and the Chess.com Public API.**
+
+This application fetches archived game data for the year 2025, processes statistics client-side (win rates, accuracy, opening preferences), and visualizes the results in an interactive, animated carousel.
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 14 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Animations:** Framer Motion
+- **State Management:** React Context API
+- **Data Source:** [Chess.com Public API](https://www.chess.com/news/view/published-data-api)
+- **Icons:** Lucide React
+
+## ⚙️ Architecture & Data Flow
+
+1. **User Input:** The user enters their username on the landing page (`app/page.tsx`).
+2. **Validation:** The app pings the Chess.com API to verify the user exists and has archives for 2025.
+3. **Data Fetching:**
+    - On success, the user is routed to `/wrapped/[username]`.
+    - The `ChessContext` triggers a fetch for all monthly archives (JSON).
+    - Games are parsed to calculate Total Games, Win/Loss/Draw ratios, and specific Opening names.
+4. **Visualization:**
+    - Data is passed into the `<Carousel />` component.
+    - Framer Motion handles the slide transitions and entrance animations.
+    - Global Audio is managed in `layout.tsx` to persist across route changes.
+
+## 📂 Project Structure
+
+```bash
+├── app/
+│   ├── layout.tsx         # Root layout (Contains Global Audio Logic)
+│   ├── page.tsx           # Landing Page (Search & Validation)
+│   └── wrapped/
+│       └── [username]/    # Dynamic Route for user stats
+├── components/
+│   ├── ui/                # Reusable UI elements (Buttons, Cards)
+│   ├── stories/           # Individual Slide Components (EloGraph, Openings, etc.)
+│   └── BackgroundMusic.tsx # Singleton Audio Component
+├── context/
+│   └── ChessContext.tsx   # Global State for parsing & storing API data
+├── hooks/
+│   └── useSound.ts        # Helper for SFX
+└── public/                # Static assets (mp3 files)
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
