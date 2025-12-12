@@ -3,46 +3,82 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Star, Github, X, Shield, Lightbulb, Zap, ChessKing } from 'lucide-react';
+import { Home, Star, Github, X, Shield, Lightbulb, Zap, ChessKing, Mail, UserPlus } from 'lucide-react';
 
 // --- 1. MODAL CONTENT DEFINITIONS ---
-type ModalContentKey = 'none' | 'guide' | 'features' | 'feedback' | 'legal';
+// Removed 'feedback' from the type since it's now a direct link
+type ModalContentKey = 'none' | 'guide' | 'features' | 'legal';
 
 const MODAL_CONTENT = {
     guide: {
-        title: "How It Works: Get Started",
+        title: "How It Works",
         icon: Lightbulb,
         color: 'text-[#81b64c]',
-        body: "1. Simply type your Chess.com username into the card on the homepage.\n2. Click START! or press Enter.\n3. We fetch your 2025 archived games (no login required).\n4. The system analyzes your Elo, best games, and blunders, presenting them slide-by-slide.",
+        body: (
+            <div className="space-y-4">
+                <p>1. Type your chess.com username.</p>
+                <p>2. Click START! or press Enter.</p>
+                <p>3. Don't have an account? bro just make one :b</p>
+            </div>
+        )
     },
     features: {
-        title: "Key Features Preview",
+        title: "Key Features",
         icon: Zap,
         color: 'text-[#ffc800]',
-        body: "• Visual Elo Rollercoaster: See your rating fluctuate weekly.\n• Opening Analysis: Discover your highest win-rate openings.\n• Nemesis Identification: We track the opponent who beat you the most.\n• Shareable Story: Generate a single, viral image card of your stats.",
-    },
-    feedback: {
-        title: "Send Your Feedback",
-        icon: Star,
-        color: 'text-[#ffc800]',
-        body: "Thank up you for wanting to contribute! Due to the rapid development phase, please submit feedback via our GitHub issues page for now. We appreciate your input!",
+        body: (
+            <div className="space-y-4">
+                <p>It's a year wrap for chess (inspired by Spotify Wrapped). It showcases your chess journey in 2025</p>
+                <p className="font-bold text-[#ffc800]">NO SPOILERS HERE {'>'}:)</p>
+            </div>
+        )
     },
     legal: {
-        title: "Terms, Privacy & Contact",
+        title: "Legal & Contact",
         icon: Shield,
         color: 'text-white',
         body: (
-            <>
-                <p className="text-white text-lg mb-4 font-bold border-b border-[#81b64c]/50 pb-2">Publishing Information</p>
-                <p className="text-[#81b64c] mb-2 font-bold">Disclaimer:</p>
-                <p className="text-[#989795] mb-4">This project is an independent analysis tool and is not officially affiliated with Chess.com. Data is fetched via public APIs.</p>
-                <p className="text-[#81b64c] mb-2 font-bold">Policy Links (Placeholders):</p>
-                <ul className="list-disc list-inside text-[#c3c2c1] ml-4 space-y-1 mb-4">
-                    <li><a href="/terms" target="_blank" className="underline hover:text-[#ffc800]">Terms of Service</a></li>
-                    <li><a href="/privacy" target="_blank" className="underline hover:text-[#ffc800]">Privacy Policy</a></li>
-                </ul>
-                <p className="text-[#989795] text-xs mt-4">© 2025 ChessWrapped. All rights reserved.</p>
-            </>
+            <div className="space-y-6 text-sm">
+
+                {/* Contact Section */}
+                <div className="bg-[#3e3c39] p-4 rounded-xl border border-white/10">
+                    <h4 className="text-[#81b64c] font-bold text-lg mb-2 flex items-center gap-2">
+                        <Mail size={16} /> Contact Us
+                    </h4>
+                    <p className="mb-2">For support, bug reports, or inquiries, please contact me:</p>
+                    <a
+                        href="mailto:huynhmaithienan.2005@gmail.com"
+                        className="text-[#ffc800] hover:underline font-bold break-all"
+                    >
+                        huynhmaithienan.2005@gmail.com
+                    </a>
+                </div>
+
+                {/* Terms of Service */}
+                <div>
+                    <h4 className="text-white font-bold text-lg mb-2 border-b border-white/20 pb-1">1. Terms of Service</h4>
+                    <p className="mb-2 text-justify">
+                        <strong>Disclaimer:</strong> ChessWrapped is an independent, open-source hobby project and is <span className="text-[#ffc800]">not affiliated, endorsed, or sponsored by Chess.com</span>.
+                    </p>
+                    <p className="text-justify">
+                        By using this website, you acknowledge that we simply visualize public data available via the Chess.com Public API. We are not responsible for any inaccuracies in the data provided by the third-party API. Also pls don't DDOS the web :(
+                    </p>
+                </div>
+
+                {/* Privacy Policy */}
+                <div>
+                    <h4 className="text-white font-bold text-lg mb-2 border-b border-white/20 pb-1">2. Privacy Policy</h4>
+                    <ul className="list-disc list-inside space-y-2 text-[#c3c2c1]">
+                        <li><strong>No Data Storage:</strong> We do not store your passwords, or personal credentials so don't worry :{'>'}</li>
+                        <li><strong>Public Data Only:</strong> We only access data that is already publicly available on your Chess.com profile (including all your blunders ya know)</li>
+                        <li><strong>Cookies:</strong> We do not use tracking cookies or sell your data to third parties. But we do have da riel cookie 🍪</li>
+                    </ul>
+                </div>
+
+                <div className="pt-4 border-t border-white/10 text-center text-xs text-[#989795]">
+                    © 2025 ChessWrapped. All rights reserved.
+                </div>
+            </div>
         ),
     },
 };
@@ -64,24 +100,32 @@ const HeaderModal = ({ contentKey, onClose }: { contentKey: ModalContentKey, onC
                 onClick={onClose}
             >
                 <motion.div
-                    className="bg-[#262421] rounded-3xl p-8 max-w-md w-full shadow-2xl border-4 border-white/20"
+                    className="bg-[#262421] rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl border-4 border-white/20 flex flex-col max-h-[85vh]"
                     initial={{ scale: 0.8, y: -50 }}
                     animate={{ scale: 1, y: 0 }}
                     exit={{ scale: 0.8, y: -50 }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     onClick={e => e.stopPropagation()}
                 >
-                    <div className="flex justify-between items-start mb-6">
-                        <div className="flex items-center gap-4">
-                            <Icon size={32} className={`${content.color} drop-shadow-md`} />
+                    {/* Modal Header (Fixed) */}
+                    <div className="flex justify-between items-start mb-4 shrink-0">
+                        <div className="flex items-center gap-3">
+                            <Icon size={28} className={`${content.color} drop-shadow-md`} />
                             <h3 className="text-2xl font-bold text-white">{content.title}</h3>
                         </div>
-                        <button onClick={onClose} className="text-white/80 hover:text-white transition-colors p-2 rounded-full">
+                        <button onClick={onClose} className="text-white/80 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10">
                             <X size={24} />
                         </button>
                     </div>
 
-                    <div className="text-left text-[#c3c2c1] whitespace-pre-line">{content.body}</div>
+                    {/* Modal Body (Scrollable) */}
+                    <div className="text-left text-[#c3c2c1] overflow-y-auto pr-2 custom-scrollbar">
+                        {typeof content.body === 'string' ? (
+                            <p className="whitespace-pre-line">{content.body}</p>
+                        ) : (
+                            content.body
+                        )}
+                    </div>
 
                 </motion.div>
             </motion.div>
@@ -98,11 +142,9 @@ export default function Header() {
     // --- Sound Effect Logic ---
     const playHoverSound = () => {
         try {
-            // Ensure you have a 'hover.mp3' in your public folder!
             const audio = new Audio('/hover.mp3');
-            audio.volume = 0.5; // Keep it subtle
-            audio.play().catch(() => {
-            });
+            audio.volume = 0.5;
+            audio.play().catch(() => {});
         } catch (e) {
             console.error("Audio play failed", e);
         }
@@ -162,16 +204,27 @@ export default function Header() {
                 </nav>
 
                 {/* 3. Action Buttons */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
 
-                    {/* Feedback Button */}
-                    <button
+                    {/* Add Friend Button */}
+                    <Link
+                        href="https://www.chess.com/member/aan_huynh"
+                        target="_blank"
                         onMouseEnter={playHoverSound}
-                        onClick={() => handleModalOpen('feedback')}
-                        className="bg-[#ffc800] hover:bg-[#e6b800] text-[#302e2b] font-bold px-4 py-2 rounded-full shadow-[0_4px_0_#b38b00] active:shadow-none active:translate-y-[4px] transition-all flex items-center gap-2 border-2 border-[#ffc800]"
+                        className="bg-[#81b64c] hover:bg-[#72a341] text-white font-bold px-4 py-2 rounded-full shadow-[0_4px_0_#457524] active:shadow-none active:translate-y-[4px] transition-all flex items-center gap-2 border-2 border-[#81b64c]"
                     >
-                        <Star size={16} fill="currentColor" /> <span className="hidden sm:inline">Feedback</span>
-                    </button>
+                        <UserPlus size={16} /> <span className="hidden sm:inline">Add Friend?</span>
+                    </Link>
+
+                    {/* Feedback Button (Now a Link) */}
+                    <Link
+                        href="https://forms.gle/Eweg1RtYs9is9p6x5" // REPLACE THIS WITH YOUR FORM LINK
+                        target="_blank"
+                        onMouseEnter={playHoverSound}
+                        className="hidden sm:flex bg-[#ffc800] hover:bg-[#e6b800] text-[#302e2b] font-bold px-4 py-2 rounded-full shadow-[0_4px_0_#b38b00] active:shadow-none active:translate-y-[4px] transition-all items-center gap-2 border-2 border-[#ffc800]"
+                    >
+                        <Star size={16} fill="currentColor" /> <span className="hidden md:inline">Feedback</span>
+                    </Link>
 
                     {/* GitHub Button */}
                     <Link

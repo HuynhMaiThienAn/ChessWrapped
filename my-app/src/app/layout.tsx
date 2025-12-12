@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import BackgroundMusic from '@/components/BackgroundMusic';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
     return (
         <html lang="en">
         <body className={`${inter.className} bg-[#211f1c] text-white antialiased`}>
+        <BackgroundMusic />
         {children}
         </body>
         </html>

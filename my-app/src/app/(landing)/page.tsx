@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, ChessKing, ChessQueen, ChessRook, ChessBishop, ChessKnight, ChessPawn, AlertTriangle, X } from 'lucide-react';
 
 // --- GLOBAL AUDIO VARIABLE ---
-let landingBgm: HTMLAudioElement | null = null;
 
 export default function LandingPage() {
     const router = useRouter();
@@ -18,27 +17,6 @@ export default function LandingPage() {
     // --- Sound Effects Refs ---
     const typeSoundRef = useRef<HTMLAudioElement | null>(null);
     const startSoundRef = useRef<HTMLAudioElement | null>(null);
-
-    // --- 1. HANDLE BACKGROUND MUSIC ---
-    useEffect(() => {
-        if (!landingBgm) {
-            landingBgm = new Audio('/home.mp3');
-            landingBgm.loop = true;
-            landingBgm.volume = 0.5;
-        }
-
-        const playPromise = landingBgm.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(() => {});
-        }
-
-        return () => {
-            if (landingBgm) {
-                landingBgm.pause();
-                landingBgm.currentTime = 0;
-            }
-        };
-    }, []);
 
     // --- 2. HANDLE SOUND EFFECTS ---
     useEffect(() => {
@@ -214,7 +192,7 @@ export default function LandingPage() {
                                                 exit={{ opacity: 0 }}
                                                 className="text-[#52525b] font-bold text-sm"
                                             >
-                                                (type your name!)
+                                                (type your chess.com username!)
                                             </motion.p>
                                         )}
                                     </AnimatePresence>
