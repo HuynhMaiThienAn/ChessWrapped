@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, RotateCcw, Home, Star } from 'lucide-react';
 import Link from 'next/link';
@@ -23,6 +23,23 @@ export default function Carousel() {
     const { stats: data } = useChessStats();
     const [currentStep, setCurrentStep] = useState(0);
 
+    // --- AUDIO LOGIC ---
+    const clickSoundRef = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        // We reuse 'keypress.mp3' for a snappy button click effect.
+        // You can change this to '/click.mp3' if you have a specific file.
+        clickSoundRef.current = new Audio('/hover.mp3');
+        if (clickSoundRef.current) clickSoundRef.current.volume = 0.4;
+    }, []);
+
+    const playClick = () => {
+        if (clickSoundRef.current) {
+            clickSoundRef.current.currentTime = 0;
+            clickSoundRef.current.play().catch(() => {});
+        }
+    };
+
     // Filter Slides based on data availability
     const allSlides = [
         { id: 'welcome', component: <WelcomeSlide /> },
@@ -41,10 +58,12 @@ export default function Carousel() {
     const slides = allSlides.filter(slide => slide.condition ? slide.condition() : true);
 
     const handleNext = useCallback(() => {
+        playClick(); // Play sound
         if (currentStep < slides.length - 1) setCurrentStep(c => c + 1);
     }, [currentStep, slides.length]);
 
     const handlePrev = useCallback(() => {
+        playClick(); // Play sound
         if (currentStep > 0) setCurrentStep(c => c - 1);
     }, [currentStep]);
 
@@ -71,7 +90,11 @@ export default function Carousel() {
 
             {/* TOP HUD: Home & Progress */}
             <div className="w-full max-w-[380px] flex items-center gap-4 mt-4 mb-2 shrink-0 z-50">
-                <Link href="/" className="w-10 h-10 bg-white text-[#302e2b] rounded-full flex items-center justify-center shadow-[0_4px_0_rgba(0,0,0,0.1)] active:translate-y-[4px] active:shadow-none transition-all border-2 border-white hover:scale-105">
+                <Link
+                    href="/"
+                    onClick={playClick}
+                    className="w-10 h-10 bg-white text-[#302e2b] rounded-full flex items-center justify-center shadow-[0_4px_0_rgba(0,0,0,0.1)] active:translate-y-[4px] active:shadow-none transition-all border-2 border-white hover:scale-105"
+                >
                     <Home size={20} strokeWidth={3} />
                 </Link>
 
@@ -135,7 +158,10 @@ export default function Carousel() {
                     </button>
                 ) : (
                     <button
-                        onClick={() => window.location.reload()}
+                        onClick={() => {
+                            playClick();
+                            window.location.reload();
+                        }}
                         className="flex-1 h-16 bg-[#ffc800] hover:bg-[#ffda66] text-[#302e2b] rounded-[20px] border-b-8 border-r-4 border-[#e6b800] flex items-center justify-center gap-3 active:border-b-0 active:border-r-0 active:translate-y-2 active:translate-x-1 transition-all"
                     >
                         <span className="font-black text-xl tracking-wider uppercase">Replay</span>

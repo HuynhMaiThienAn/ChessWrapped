@@ -1,5 +1,8 @@
+'use client'; // [!code ++]
+
 import React, { ButtonHTMLAttributes } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useSFX } from '@/hooks/useSound'; // [!code ++]
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
@@ -14,8 +17,20 @@ export default function Button({
                                    isLoading = false,
                                    fullWidth = false,
                                    disabled,
+                                   onClick,
                                    ...props
                                }: ButtonProps) {
+
+    // 1. Initialize the SFX hook
+    const playClick = useSFX('hover.mp3', 1); // [!code ++]
+
+    // 2. Wrap the click handler
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => { // [!code ++]
+        if (!disabled && !isLoading) { // [!code ++]
+            playClick(); // [!code ++]
+        } // [!code ++]
+        onClick?.(e); // [!code ++]
+    }; // [!code ++]
 
     const baseStyles = "inline-flex items-center justify-center rounded-lg font-bold transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]";
 
@@ -32,6 +47,7 @@ export default function Button({
         <button
             className={`${baseStyles} ${variants[variant]} ${widthClass} ${className}`}
             disabled={disabled || isLoading}
+            onClick={handleClick} // [!code ++]
             {...props}
         >
             {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}

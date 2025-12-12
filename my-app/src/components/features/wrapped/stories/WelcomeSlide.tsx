@@ -15,6 +15,16 @@ export default function WelcomeSlide() {
         ? data.eloHistory[data.eloHistory.length - 1].rating
         : 400;
 
+    // --- LOGIC: Dynamic Font Sizing ---
+    // If name is longer than 12 chars, shrink the text.
+    // If longer than 18, shrink it more.
+    const nameLength = data.username.length;
+    const nameSizeClass = nameLength > 18
+        ? "text-2xl md:text-3xl"
+        : nameLength > 12
+            ? "text-3xl md:text-4xl"
+            : "text-4xl md:text-5xl";
+
     return (
         <StoryCard id="slide-welcome" className={CONTAINERS.slideCard}>
 
@@ -51,9 +61,11 @@ export default function WelcomeSlide() {
                     </div>
                 </motion.div>
 
-                {/* 3. Username & Elo */}
+                {/* 3. Username & Elo (Fixed Overflow) */}
                 <motion.div variants={itemVariants} className="text-center w-full px-4 mb-2">
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 drop-shadow-md">
+                    <h1
+                        className={`${nameSizeClass} font-bold text-white mb-2 drop-shadow-md break-all leading-tight`}
+                    >
                         {data.username}
                     </h1>
                     <div className="inline-block bg-[#3e3c39] px-6 py-2 rounded-2xl border-2 border-[#ffffff10]">

@@ -3,13 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Star, Github, X, Shield, Lightbulb, Zap, ChessKing, AlertTriangle } from 'lucide-react';
+import { Home, Star, Github, X, Shield, Lightbulb, Zap, ChessKing } from 'lucide-react';
 
-// --- 1. MODAL CONTENT DEFINITIONS (Unchanged) ---
+// --- 1. MODAL CONTENT DEFINITIONS ---
 type ModalContentKey = 'none' | 'guide' | 'features' | 'feedback' | 'legal';
 
 const MODAL_CONTENT = {
-    // ... [Content definitions remain the same] ...
     guide: {
         title: "How It Works: Get Started",
         icon: Lightbulb,
@@ -35,23 +34,20 @@ const MODAL_CONTENT = {
         body: (
             <>
                 <p className="text-white text-lg mb-4 font-bold border-b border-[#81b64c]/50 pb-2">Publishing Information</p>
-
                 <p className="text-[#81b64c] mb-2 font-bold">Disclaimer:</p>
                 <p className="text-[#989795] mb-4">This project is an independent analysis tool and is not officially affiliated with Chess.com. Data is fetched via public APIs.</p>
-
                 <p className="text-[#81b64c] mb-2 font-bold">Policy Links (Placeholders):</p>
                 <ul className="list-disc list-inside text-[#c3c2c1] ml-4 space-y-1 mb-4">
                     <li><a href="/terms" target="_blank" className="underline hover:text-[#ffc800]">Terms of Service</a></li>
                     <li><a href="/privacy" target="_blank" className="underline hover:text-[#ffc800]">Privacy Policy</a></li>
                 </ul>
-
                 <p className="text-[#989795] text-xs mt-4">© 2025 ChessWrapped. All rights reserved.</p>
             </>
         ),
     },
 };
 
-// --- 2. REUSABLE MODAL COMPONENT (Unchanged) ---
+// --- 2. REUSABLE MODAL COMPONENT ---
 const HeaderModal = ({ contentKey, onClose }: { contentKey: ModalContentKey, onClose: () => void }) => {
     if (contentKey === 'none') return null;
 
@@ -99,6 +95,19 @@ type ValidModalKey = Exclude<ModalContentKey, 'none'>;
 export default function Header() {
     const [modalContent, setModalContent] = useState<ModalContentKey>('none');
 
+    // --- Sound Effect Logic ---
+    const playHoverSound = () => {
+        try {
+            // Ensure you have a 'hover.mp3' in your public folder!
+            const audio = new Audio('/hover.mp3');
+            audio.volume = 0.5; // Keep it subtle
+            audio.play().catch(() => {
+            });
+        } catch (e) {
+            console.error("Audio play failed", e);
+        }
+    };
+
     const handleModalOpen = (key: ModalContentKey) => {
         setModalContent(key);
     };
@@ -112,7 +121,11 @@ export default function Header() {
             <div className="max-w-7xl mx-auto px-4 flex justify-between items-center bg-[#302e2b] rounded-full shadow-xl border-4 border-[#262421]">
 
                 {/* 1. Logo/Home Link */}
-                <Link href="/" className="flex items-center gap-2 p-2 transition-transform hover:scale-105">
+                <Link
+                    href="/"
+                    onMouseEnter={playHoverSound}
+                    className="flex items-center gap-2 p-2 transition-transform hover:scale-105"
+                >
                     <div className="bg-[#81b64c] p-2 rounded-full shadow-md">
                         <ChessKing size={20} className="text-white" strokeWidth={3} />
                     </div>
@@ -121,61 +134,53 @@ export default function Header() {
                     </span>
                 </Link>
 
-                {/* 2. Nav Links (Core Info Links) */}
-                <nav className="flex items-center gap-2 md:gap-4 text-sm font-bold text-white/80">
-
-                    {/* How It Works */}
+                {/* 2. Nav Links */}
+                <nav className="hidden md:flex items-center gap-2 md:gap-4 text-sm font-bold text-white/80">
                     <button
+                        onMouseEnter={playHoverSound}
                         onClick={() => handleModalOpen('guide')}
                         className="hover:text-[#ffc800] transition-colors p-2 rounded-lg"
                     >
                         How It Works
                     </button>
 
-                    {/* Features */}
                     <button
+                        onMouseEnter={playHoverSound}
                         onClick={() => handleModalOpen('features')}
                         className="hover:text-[#ffc800] transition-colors p-2 rounded-lg"
                     >
                         Features
                     </button>
 
-                    {/* Policy & Legal */}
                     <button
+                        onMouseEnter={playHoverSound}
                         onClick={() => handleModalOpen('legal')}
                         className="hover:text-[#ffc800] transition-colors p-2 rounded-lg flex items-center gap-1"
                     >
                         Policy & Legal
                     </button>
-
-                    {/* The 'Don't Click' Button */}
-                    <button
-                        onClick={() => handleModalOpen('legal')}
-                        className="hover:text-[#ffc800] transition-colors p-2 rounded-lg flex items-center gap-1"
-                    >
-                        What
-                    </button>
-
                 </nav>
 
-                {/* 3. Action Buttons (Feedback & GitHub - Chunkily Styled) */}
+                {/* 3. Action Buttons */}
                 <div className="flex gap-2">
 
-                    {/* Feedback Button (Yellow Chunky) */}
+                    {/* Feedback Button */}
                     <button
+                        onMouseEnter={playHoverSound}
                         onClick={() => handleModalOpen('feedback')}
                         className="bg-[#ffc800] hover:bg-[#e6b800] text-[#302e2b] font-bold px-4 py-2 rounded-full shadow-[0_4px_0_#b38b00] active:shadow-none active:translate-y-[4px] transition-all flex items-center gap-2 border-2 border-[#ffc800]"
                     >
-                        <Star size={16} fill="currentColor" /> Feedback
+                        <Star size={16} fill="currentColor" /> <span className="hidden sm:inline">Feedback</span>
                     </button>
 
-                    {/* GitHub Button (Dark/Charcoal Chunky Style) */}
+                    {/* GitHub Button */}
                     <Link
-                        href="https://github.com/your-repo-link"
+                        href="https://github.com/huynhmaithienan/Chess-wrapped"
                         target="_blank"
+                        onMouseEnter={playHoverSound}
                         className="bg-[#3e3c39] hover:bg-[#52525b] text-white font-bold px-4 py-2 rounded-full shadow-[0_4px_0_#262421] active:shadow-none active:translate-y-[4px] transition-all flex items-center gap-2 border-2 border-[#3e3c39]"
                     >
-                        <Github size={16} /> GitHub
+                        <Github size={16} /> <span className="hidden sm:inline">GitHub</span>
                     </Link>
 
                 </div>
