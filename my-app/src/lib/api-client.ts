@@ -1,25 +1,21 @@
-import axios, {AxiosResponse} from "axios";
-/*
-Reference from
-https://medium.com/@ignatovich.dm/creating-a-type-safe-api-client-with-typescript-and-react-ce1b82bf8b9b
-*/
+const BASE_URL = "https://api.chess.com/pub";
 
-const apiClient = axios.create({
-    baseURL: "https://api.chess.com/pub",
-    headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': '/1.0 (contact: huynhmaithienan.2005@gmail.com)'
-    },
-    timeout: 10000 // wait for 10s cuz why not
-})
+export const apiRequest = async <T>(endpoint: string): Promise<T> => {
+    const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`;
 
-// generic API function
-export const apiRequest = async <T>(url: string, method: 'GET' | 'POST', data?: any): Promise<T> => {
-    const response: AxiosResponse<T> = await apiClient({
-        method,
-        url,
-        data,
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            // Chess.com requires a User-Agent with contact info
+            'User-Agent': 'ChessWrapped/1.0 (contact: huynhmaithienan.2005@gmail.com)'
+        },
+        // Cache data to speed up subsequent loads for the same user
+        next: { revalidate: 3600 }
     });
 
-    return response.data;
+    if (!res.ok) {
+        throw new Error(`API Error: ${res.status} ${res.statusText}`);
+    }
+    return res.json();
 };
