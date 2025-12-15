@@ -1,34 +1,5 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-const BASE_URL = process.env.NEXT_PUBLIC_CHESS_API_URL || "https://api.chess.com/pub";
+const BASE_URL = process.env.NEXT_PUBLIC_CHESS_API_URL;
 
-export const apiRequest = async <T>(
-    endpoint: string,
-    options: RequestInit = {}
-): Promise<T> => {
-=======
-const BASE_URL = "https://api.chess.com/pub";
->>>>>>> parent of da305ee (feat: implement Redis for cache handling)
-
-export const apiRequest = async <T>(endpoint: string): Promise<T> => {
-    const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`;
-
-    const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            // Chess.com requires a User-Agent with contact info
-            'User-Agent': 'ChessWrapped/1.0 (contact: huynhmaithienan.2005@gmail.com)'
-        },
-        // Cache data to speed up subsequent loads for the same user
-        next: { revalidate: 3600 }
-    });
-
-    if (!res.ok) {
-        throw new Error(`API Error: ${res.status} ${res.statusText}`);
-    }
-    return res.json();
-=======
 import axios, {AxiosResponse} from "axios";
 /*
 Reference from
@@ -36,7 +7,7 @@ https://medium.com/@ignatovich.dm/creating-a-type-safe-api-client-with-typescrip
 */
 
 const apiClient = axios.create({
-    baseURL: "https://api.chess.com/pub",
+    baseURL: BASE_URL,
     headers: {
         'Content-Type': 'application/json',
         'User-Agent': '/1.0 (contact: huynhmaithienan.2005@gmail.com)'
@@ -53,5 +24,4 @@ export const apiRequest = async <T>(url: string, method: 'GET' | 'POST', data?: 
     });
 
     return response.data;
->>>>>>> parent of 5c0ac45 (feat: use fetch with cache data to speed up and reduce api calls)
 };
