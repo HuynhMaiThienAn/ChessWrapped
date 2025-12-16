@@ -38,6 +38,11 @@ export function analyzeOpenings(games: ChessGame[], username: string) {
             name === ''
         ) return;
 
+        // 🛡️ SAFETY CHECK
+        if (!game.white || !game.black || !game.white.username || !game.black.username) {
+            return;
+        }
+
         const isWhite = game.white.username.toLowerCase() === lowerUsername;
         const userSide = isWhite ? game.white : game.black;
         const won = userSide.result === 'win';

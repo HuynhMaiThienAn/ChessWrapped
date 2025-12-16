@@ -5,6 +5,11 @@ export function analyzeMatches(games: ChessGame[], username: string) {
     const seenUrls = new Set<string>();
 
     const candidates = games.filter(game => {
+        // 🛡️ SAFETY CHECK 1: Ensure player data exists
+        if (!game.white || !game.black || !game.white.username || !game.black.username) {
+            return false;
+        }
+
         // A. Check for duplicates immediately
         if (seenUrls.has(game.url)) return false;
         seenUrls.add(game.url);
@@ -18,6 +23,9 @@ export function analyzeMatches(games: ChessGame[], username: string) {
 
         // C. No Bot matches
         if (opponentSide.username.toLowerCase().includes('bot')) return false;
+
+        // 🛡️ SAFETY CHECK 2: Ensure PGN exists before checking move count
+        if (!game.pgn) return false;
 
         // D. Check Move Count > 10 (Avoids early aborts)
         const moveCount = (game.pgn.match(/\d+\./g) || []).length;

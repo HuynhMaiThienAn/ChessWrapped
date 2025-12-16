@@ -18,6 +18,11 @@ export function analyzeElo(games: ChessGame[], username: string) {
     sortedGames.forEach(game => {
         if (!game.rated) return;
 
+        // 🛡️ SAFETY CHECK
+        if (!game.white || !game.black || !game.white.username || !game.black.username) {
+            return;
+        }
+
         const mode = normalize(game.time_class);
         if (!['Blitz', 'Rapid', 'Bullet'].includes(mode)) return;
 

@@ -11,6 +11,11 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
     const lowerUsername = username.toLowerCase();
 
     games.forEach(game => {
+        // 🛡️ SAFETY CHECK
+        if (!game.white || !game.black || !game.white.username || !game.black.username) {
+            return;
+        }
+
         const isWhite = game.white.username.toLowerCase() === lowerUsername;
         const userSide = isWhite ? game.white : game.black;
 
