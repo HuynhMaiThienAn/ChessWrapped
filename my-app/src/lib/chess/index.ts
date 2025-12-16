@@ -35,7 +35,6 @@ export async function generateWrappedStats(username: string) {
         ...openings,
         topFriends: friendsWithAvatars,
         impressiveMatches: matchesWithAvatars,
-        tournamentCount: 0,
         year: parseInt(TARGET_YEAR)
     };
 }

@@ -131,11 +131,11 @@ export default function EloGraphSlide() {
 
                 {/* Header */}
                 <motion.div variants={itemVariants} className="w-full flex justify-start items-center px-4 mb-2 z-10">
-                    <div className="p-1 bg-white rounded-full shadow-lg mr-3">
+                    <div className=" bg-white rounded-full shadow-lg mr-3">
                         <img
                             src={data.avatarUrl}
                             alt={data.username}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-[#81b64c]"
+                            className="w-12 h-12 rounded-full object-cover border-4 border-[#81b64c]"
                         />
                     </div>
                     <h2 className="text-2xl font-bold text-white drop-shadow-md">

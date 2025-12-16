@@ -27,12 +27,14 @@ export function analyzeOpenings(games: ChessGame[], username: string) {
 
     games.forEach(game => {
         const rawName = getOpeningFromPGN(game.pgn);
-        const name = rawName.split(':')[0].trim();
+
+        // The regex in util.ts handles the cleanup now.
+        const name = rawName.trim();
 
         if (
             name === 'Unknown' ||
             name.startsWith('?') ||
-            name === 'undefined' || // avoid fetching undefined opening
+            name === 'undefined' ||
             name === ''
         ) return;
 
@@ -64,7 +66,7 @@ export function analyzeOpenings(games: ChessGame[], username: string) {
                 if (sortType === 'best') return b.count - a.count; // Most played
                 return a.winRate - b.winRate; // Lowest winrate first for 'worst'
             })
-            .slice(0, 1);
+            .slice(0, 10);
     };
 
     return {

@@ -143,52 +143,6 @@ export default function TotalGamesSlide() {
                             <motion.div initial={{ width: 0 }} animate={{ flex: 1 }} transition={{ duration: 1, delay: 0.6 }} className="h-full bg-[#ca3431]" />
                         </div>
                     </motion.div>
-
-                    {/* 3. BAR CHART: VARIANTS (Sorted by Size -> Colored by Rank) */}
-                    <motion.div variants={itemVariants} className="w-full">
-                        <div className="flex justify-between items-end mb-1 text-xs">
-                            {/* Largest (Green) */}
-                            <div className="text-left">
-                                <div className="font-black text-lg" style={{ color: color1 }}>{firstPct}%</div>
-                                <div className="text-[#989795] font-bold text-[10px] uppercase">{first.name}</div>
-                            </div>
-                            {/* Middle (White) */}
-                            <div className="text-center">
-                                <div className="font-black text-lg" style={{ color: color2 }}>{secondPct}%</div>
-                                <div className="text-[#989795] font-bold text-[10px] uppercase">{second.name}</div>
-                            </div>
-                            {/* Smallest (Red) */}
-                            <div className="text-right">
-                                <div className="font-black text-lg" style={{ color: color3 }}>{thirdPct}%</div>
-                                <div className="text-[#989795] font-bold text-[10px] uppercase">{third.name}</div>
-                            </div>
-                        </div>
-
-                        <div className="w-full h-4 bg-[#262421] rounded-full flex overflow-hidden border border-[#3e3c39] mb-1">
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: firstW }}
-                                transition={{ duration: 1, delay: 0.3 }}
-                                className="h-full"
-                                style={{ backgroundColor: color1 }}
-                            />
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: secondW }}
-                                transition={{ duration: 1, delay: 0.5 }}
-                                className="h-full"
-                                style={{ backgroundColor: color2 }}
-                            />
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ flex: 1 }}
-                                transition={{ duration: 1, delay: 0.7 }}
-                                className="h-full"
-                                style={{ backgroundColor: color3 }}
-                            />
-                        </div>
-                    </motion.div>
-
                 </div>
 
                 {/* Footer Comment */}

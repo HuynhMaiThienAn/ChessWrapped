@@ -10,7 +10,6 @@ import { useChessStats } from '@/context/ChessContext';
 import WelcomeSlide from './stories/WelcomeSlide';
 import TotalGamesSlide from './stories/TotalGamesSlide';
 import EloGraphSlide from './stories/EloGraphSlide';
-import OpeningCountSlide from './stories/OpeningCountSlide';
 import ImpressiveMatchesSlide from './stories/ImpressiveMatchesSlide';
 import WorstOpeningSlide from './stories/WorstOpeningSlide';
 import EndSlide from './stories/EndSlide';
@@ -42,7 +41,6 @@ export default function Carousel() {
         { id: 'welcome', component: <WelcomeSlide /> },
         { id: 'games', component: <TotalGamesSlide /> },
         { id: 'elo', component: <EloGraphSlide /> },
-        { id: 'op_count', component: <OpeningCountSlide /> },
         { id: 'op_top', component: <TopOpeningSlide /> },
         { id: 'op_worst', component: <WorstOpeningSlide />, condition: () => (data.worstOpeningsWhite.length > 0 || data.worstOpeningsBlack.length > 0) },
         { id: 'tourney', component: <TournamentsSlide />, condition: () => data.tournamentCount > 0 },
