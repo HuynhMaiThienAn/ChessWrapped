@@ -26,7 +26,7 @@ export default function Carousel() {
 
     useEffect(() => {
         clickSoundRef.current = new Audio('/hover.mp3');
-        if (clickSoundRef.current) clickSoundRef.current.volume = 0.4;
+        if (clickSoundRef.current) clickSoundRef.current.volume = 0.3;
     }, []);
 
     const playClick = () => {

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Star, Github, X, Shield, Lightbulb, Zap, ChessKing, Mail, UserPlus } from 'lucide-react';
+import { X, Shield, Lightbulb, Zap, Mail, UserPlus, Menu, Instagram, ExternalLink, Star, Github, Volume2, VolumeX, ChessKing } from 'lucide-react';
+import { useSound } from '@/context/SoundContext'; // 👇 Import the new hook
 
 // --- 1. MODAL CONTENT DEFINITIONS ---
-// Removed 'feedback' from the type since it's now a direct link
 type ModalContentKey = 'none' | 'guide' | 'features' | 'legal';
 
 const MODAL_CONTENT = {
@@ -39,42 +39,28 @@ const MODAL_CONTENT = {
         color: 'text-white',
         body: (
             <div className="space-y-6 text-sm">
-
-                {/* Contact Section */}
                 <div className="bg-[#3e3c39] p-4 rounded-xl border border-white/10">
                     <h4 className="text-[#81b64c] font-bold text-lg mb-2 flex items-center gap-2">
                         <Mail size={16} /> Contact Us
                     </h4>
                     <p className="mb-2">For support, bug reports, or inquiries, please contact me:</p>
-                    <a
-                        href="mailto:huynhmaithienan.2005@gmail.com"
-                        className="text-[#ffc800] hover:underline font-bold break-all"
-                    >
+                    <a href="mailto:huynhmaithienan.2005@gmail.com" className="text-[#ffc800] hover:underline font-bold break-all">
                         huynhmaithienan.2005@gmail.com
                     </a>
                 </div>
-
-                {/* Terms of Service */}
                 <div>
                     <h4 className="text-white font-bold text-lg mb-2 border-b border-white/20 pb-1">1. Terms of Service</h4>
                     <p className="mb-2 text-justify">
                         <strong>Disclaimer:</strong> ChessWrapped is an independent, open-source hobby project and is <span className="text-[#ffc800]">not affiliated, endorsed, or sponsored by Chess.com</span>.
                     </p>
-                    <p className="text-justify">
-                        By using this website, you acknowledge that we simply visualize public data available via the Chess.com Public API. We are not responsible for any inaccuracies in the data provided by the third-party API. Also pls don't DDOS the web :(
-                    </p>
                 </div>
-
-                {/* Privacy Policy */}
                 <div>
                     <h4 className="text-white font-bold text-lg mb-2 border-b border-white/20 pb-1">2. Privacy Policy</h4>
                     <ul className="list-disc list-inside space-y-2 text-[#c3c2c1]">
-                        <li><strong>No Data Storage:</strong> We do not store your passwords, or personal credentials so don't worry :{'>'}</li>
-                        <li><strong>Public Data Only:</strong> We only access data that is already publicly available on your Chess.com profile (including all your blunders ya know)</li>
-                        <li><strong>Cookies:</strong> We do not use tracking cookies or sell your data to third parties. But we do have da riel cookie 🍪</li>
+                        <li><strong>No Data Storage:</strong> We do not store your passwords.</li>
+                        <li><strong>Public Data Only:</strong> We only access public API data.</li>
                     </ul>
                 </div>
-
                 <div className="pt-4 border-t border-white/10 text-center text-xs text-[#989795]">
                     © 2025 ChessWrapped. All rights reserved.
                 </div>
@@ -83,10 +69,11 @@ const MODAL_CONTENT = {
     },
 };
 
+type ValidModalKey = Exclude<ModalContentKey, 'none'>;
+
 // --- 2. REUSABLE MODAL COMPONENT ---
 const HeaderModal = ({ contentKey, onClose }: { contentKey: ModalContentKey, onClose: () => void }) => {
     if (contentKey === 'none') return null;
-
     const content = MODAL_CONTENT[contentKey as ValidModalKey];
     const Icon = content.icon;
 
@@ -104,10 +91,8 @@ const HeaderModal = ({ contentKey, onClose }: { contentKey: ModalContentKey, onC
                     initial={{ scale: 0.8, y: -50 }}
                     animate={{ scale: 1, y: 0 }}
                     exit={{ scale: 0.8, y: -50 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     onClick={e => e.stopPropagation()}
                 >
-                    {/* Modal Header (Fixed) */}
                     <div className="flex justify-between items-start mb-4 shrink-0">
                         <div className="flex items-center gap-3">
                             <Icon size={28} className={`${content.color} drop-shadow-md`} />
@@ -117,55 +102,62 @@ const HeaderModal = ({ contentKey, onClose }: { contentKey: ModalContentKey, onC
                             <X size={24} />
                         </button>
                     </div>
-
-                    {/* Modal Body (Scrollable) */}
                     <div className="text-left text-[#c3c2c1] overflow-y-auto pr-2 custom-scrollbar">
-                        {typeof content.body === 'string' ? (
-                            <p className="whitespace-pre-line">{content.body}</p>
-                        ) : (
-                            content.body
-                        )}
+                        {content.body}
                     </div>
-
                 </motion.div>
             </motion.div>
         </AnimatePresence>
     );
 };
-type ValidModalKey = Exclude<ModalContentKey, 'none'>;
 
+// --- 3. MENU ITEM ---
+const MenuItem = ({ href, icon: Icon, label, colorClass, onClick }: any) => (
+    <Link
+        href={href}
+        target="_blank"
+        onClick={onClick}
+        className={`flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group w-full text-left`}
+    >
+        <div className={`p-2 rounded-lg ${colorClass} text-white shadow-sm group-hover:scale-110 transition-transform`}>
+            <Icon size={18} />
+        </div>
+        <span className="font-bold text-white text-sm">{label}</span>
+        <ExternalLink size={14} className="ml-auto text-white/30 group-hover:text-white/70" />
+    </Link>
+);
 
-// --- 3. MAIN HEADER COMPONENT ---
+// --- 4. MAIN HEADER ---
 export default function Header() {
     const [modalContent, setModalContent] = useState<ModalContentKey>('none');
+    const [menuOpen, setMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
 
-    // --- Sound Effect Logic ---
-    const playHoverSound = () => {
-        try {
-            const audio = new Audio('/hover.mp3');
-            audio.volume = 0.5;
-            audio.play().catch(() => {});
-        } catch (e) {
-            console.error("Audio play failed", e);
-        }
+    // 👇 Use Global Sound Hook
+    const { isMuted, toggleMute, playSound } = useSound();
+
+    const handleHover = () => {
+        playSound('/hover.mp3');
     };
 
-    const handleModalOpen = (key: ModalContentKey) => {
-        setModalContent(key);
-    };
-
-    const handleModalClose = () => {
-        setModalContent('none');
-    };
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
         <header className="w-full fixed top-0 z-50 py-3 font-bubbly">
-            <div className="max-w-7xl mx-auto px-4 flex justify-between items-center bg-[#302e2b] rounded-full shadow-xl border-4 border-[#262421]">
+            <div className="max-w-7xl mx-auto px-4 flex justify-between items-center bg-[#302e2b] rounded-full shadow-xl border-4 border-[#262421] relative">
 
-                {/* 1. Logo/Home Link */}
+                {/* 1. Logo */}
                 <Link
                     href="/"
-                    onMouseEnter={playHoverSound}
+                    onMouseEnter={handleHover}
                     className="flex items-center gap-2 p-2 transition-transform hover:scale-105"
                 >
                     <div className="bg-[#81b64c] p-2 rounded-full shadow-md">
@@ -176,71 +168,85 @@ export default function Header() {
                     </span>
                 </Link>
 
-                {/* 2. Nav Links */}
-                <nav className="hidden md:flex items-center gap-2 md:gap-4 text-sm font-bold text-white/80">
-                    <button
-                        onMouseEnter={playHoverSound}
-                        onClick={() => handleModalOpen('guide')}
-                        className="hover:text-[#ffc800] transition-colors p-2 rounded-lg"
-                    >
-                        How It Works
-                    </button>
-
-                    <button
-                        onMouseEnter={playHoverSound}
-                        onClick={() => handleModalOpen('features')}
-                        className="hover:text-[#ffc800] transition-colors p-2 rounded-lg"
-                    >
-                        Features
-                    </button>
-
-                    <button
-                        onMouseEnter={playHoverSound}
-                        onClick={() => handleModalOpen('legal')}
-                        className="hover:text-[#ffc800] transition-colors p-2 rounded-lg flex items-center gap-1"
-                    >
-                        Policy & Legal
-                    </button>
+                {/* 2. Nav Links (Desktop) */}
+                <nav className="hidden md:flex items-center gap-4 text-sm font-bold text-white/80">
+                    <button onMouseEnter={handleHover} onClick={() => setModalContent('guide')} className="hover:text-[#ffc800] transition-colors">How It Works</button>
+                    <button onMouseEnter={handleHover} onClick={() => setModalContent('features')} className="hover:text-[#ffc800] transition-colors">Features</button>
+                    <button onMouseEnter={handleHover} onClick={() => setModalContent('legal')} className="hover:text-[#ffc800] transition-colors">Legal</button>
                 </nav>
 
-                {/* 3. Action Buttons */}
-                <div className="flex gap-2 items-center">
+                {/* 3. Controls Container (Volume + Burger) */}
+                <div className="flex items-center gap-2">
 
-                    {/* Add Friend Button */}
-                    <Link
-                        href="https://www.chess.com/member/aan_huynh"
-                        target="_blank"
-                        onMouseEnter={playHoverSound}
-                        className="bg-[#81b64c] hover:bg-[#72a341] text-white font-bold px-4 py-2 rounded-full shadow-[0_4px_0_#457524] active:shadow-none active:translate-y-[4px] transition-all flex items-center gap-2 border-2 border-[#81b64c]"
+                    {/* 👇 Updated Volume Button (Click to Mute All) */}
+                    <button
+                        onClick={() => {
+                            toggleMute();
+                            if (isMuted) playSound('/hover.mp3'); // Play sound immediately on unmute
+                        }}
+                        className={`p-3 rounded-full transition-all border-2 ${isMuted ? 'bg-red-500/10 text-red-400 border-red-500/30' : 'bg-[#3e3c39] text-white border-[#52525b] hover:bg-[#52525b]'}`}
+                        title={isMuted ? "Unmute Sound" : "Mute Sound"}
                     >
-                        <UserPlus size={16} /> <span className="hidden sm:inline">Add Friend?</span>
-                    </Link>
+                        {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                    </button>
 
-                    {/* Feedback Button (Now a Link) */}
-                    <Link
-                        href="https://forms.gle/Eweg1RtYs9is9p6x5" // REPLACE THIS WITH YOUR FORM LINK
-                        target="_blank"
-                        onMouseEnter={playHoverSound}
-                        className="hidden sm:flex bg-[#ffc800] hover:bg-[#e6b800] text-[#302e2b] font-bold px-4 py-2 rounded-full shadow-[0_4px_0_#b38b00] active:shadow-none active:translate-y-[4px] transition-all items-center gap-2 border-2 border-[#ffc800]"
-                    >
-                        <Star size={16} fill="currentColor" /> <span className="hidden md:inline">Feedback</span>
-                    </Link>
+                    {/* Burger Menu */}
+                    <div className="relative" ref={menuRef}>
+                        <button
+                            onClick={() => {
+                                setMenuOpen(!menuOpen);
+                                handleHover();
+                            }}
+                            className={`p-3 rounded-full transition-all border-2 ${menuOpen ? 'bg-[#ffc800] text-[#302e2b] border-[#ffc800]' : 'bg-[#3e3c39] text-white border-[#52525b] hover:bg-[#52525b]'}`}
+                        >
+                            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+                        </button>
 
-                    {/* GitHub Button */}
-                    <Link
-                        href="https://github.com/huynhmaithienan/Chess-wrapped"
-                        target="_blank"
-                        onMouseEnter={playHoverSound}
-                        className="bg-[#3e3c39] hover:bg-[#52525b] text-white font-bold px-4 py-2 rounded-full shadow-[0_4px_0_#262421] active:shadow-none active:translate-y-[4px] transition-all flex items-center gap-2 border-2 border-[#3e3c39]"
-                    >
-                        <Github size={16} /> <span className="hidden sm:inline">GitHub</span>
-                    </Link>
-
+                        <AnimatePresence>
+                            {menuOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="absolute right-0 top-14 w-60 bg-[#262421] border-4 border-[#3e3c39] rounded-2xl shadow-2xl p-2 z-[60] flex flex-col gap-1"
+                                >
+                                    <MenuItem
+                                        href="https://www.chess.com/member/aan_huynh"
+                                        icon={UserPlus}
+                                        label="Add Friend"
+                                        colorClass="bg-[#81b64c]"
+                                        onClick={() => setMenuOpen(false)}
+                                    />
+                                    <MenuItem
+                                        href="https://forms.gle/Eweg1RtYs9is9p6x5"
+                                        icon={Star}
+                                        label="Feedback"
+                                        colorClass="bg-[#ffc800] text-[#302e2b]"
+                                        onClick={() => setMenuOpen(false)}
+                                    />
+                                    <MenuItem
+                                        href="https://github.com/huynhmaithienan/Chess-wrapped"
+                                        icon={Github}
+                                        label="GitHub"
+                                        colorClass="bg-[#3e3c39]"
+                                        onClick={() => setMenuOpen(false)}
+                                    />
+                                    <MenuItem
+                                        href="https://www.instagram.com/huynhmaithienan/"
+                                        icon={Instagram}
+                                        label="Instagram"
+                                        colorClass="bg-gradient-to-tr from-[#833ab4] via-[#fd1d1d] to-[#fcb045]"
+                                        onClick={() => setMenuOpen(false)}
+                                    />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </div>
 
-            {/* Modal Renderer */}
-            <HeaderModal contentKey={modalContent} onClose={handleModalClose} />
+            <HeaderModal contentKey={modalContent} onClose={() => setModalContent('none')} />
         </header>
     );
 }
