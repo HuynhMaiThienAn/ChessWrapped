@@ -41,7 +41,7 @@ const AutoFitText = ({ text }: { text: string }) => {
         <div ref={containerRef} className="w-full flex justify-center items-center overflow-hidden">
             <div
                 ref={textRef}
-                className="whitespace-nowrap origin-center font-bold text-white drop-shadow-md text-4xl md:text-5xl transition-transform duration-200"
+                className="whitespace-nowrap origin-center font-bold text-white drop-shadow-md text-4xl md:text-5xl transition-transform duration-200 leading-[1.5]"
             >
                 {text}
             </div>
@@ -51,10 +51,6 @@ const AutoFitText = ({ text }: { text: string }) => {
 
 export default function WelcomeSlide() {
     const { stats: data } = useChessStats();
-
-    const currentElo = data.eloHistory.length > 0
-        ? data.eloHistory[data.eloHistory.length - 1].rating
-        : 400;
 
     return (
         <StoryCard id="slide-welcome" className={CONTAINERS.slideCard}>
@@ -93,13 +89,8 @@ export default function WelcomeSlide() {
 
                 <motion.div variants={itemVariants} className="text-center w-full px-4 mb-2">
 
-                    <div className="mb-2 w-full">
+                    <div className="w-full">
                         <AutoFitText text={data.username} />
-                    </div>
-
-                    <div className="inline-block bg-[#3e3c39] px-6 py-2 rounded-2xl border-2 border-[#ffffff10]">
-                        <span className="text-[#989795] font-bold text-sm uppercase mr-2">Current Elo</span>
-                        <span className="text-white font-black text-xl">{currentElo}</span>
                     </div>
                 </motion.div>
 

@@ -1,51 +1,70 @@
 import { ChessGame } from '@/types';
 
 export function analyzeElo(games: ChessGame[], username: string) {
-    const blitzCount = games.filter(g => g.time_class === 'blitz').length;
-    const targetClass = blitzCount > games.length / 2 ? 'blitz' : 'rapid';
+    const monthlyStats: Record<string, { date: string; monthIndex: number; Blitz?: number; Rapid?: number; Bullet?: number }> = {};
 
-    const history: { date: string; rating: number; monthIndex: number }[] = [];
-    const seenMonths = new Set<string>();
+    // Track stats from EVERY game
+    const peaks = { Blitz: 0, Rapid: 0, Bullet: 0 };
+    const lows = { Blitz: Infinity, Rapid: Infinity, Bullet: Infinity };
+    const starts = { Blitz: 0, Rapid: 0, Bullet: 0 };
+    const ends = { Blitz: 0, Rapid: 0, Bullet: 0 };
+    const foundStart = { Blitz: false, Rapid: false, Bullet: false };
 
-    let trueHighestElo = 0;
-    let trueLowestElo = Infinity;
+    const normalize = (mode: string) => mode.charAt(0).toUpperCase() + mode.slice(1);
 
-    // Iterate backwards (from Dec to Jan)
-    for (let i = games.length - 1; i >= 0; i--) {
-        const game = games[i];
-        if (game.time_class !== targetClass || !game.rated) continue;
+    // Sort
+    const sortedGames = [...games].sort((a, b) => a.end_time - b.end_time);
+
+    sortedGames.forEach(game => {
+        if (!game.rated) return;
+
+        const mode = normalize(game.time_class);
+        if (!['Blitz', 'Rapid', 'Bullet'].includes(mode)) return;
 
         const isWhite = game.white.username.toLowerCase() === username.toLowerCase();
         const rating = isWhite ? game.white.rating : game.black.rating;
+        const dateObj = new Date(game.end_time * 1000);
+        const monthKey = `${dateObj.getFullYear()}-${dateObj.getMonth()}`;
 
-        if (rating > trueHighestElo) trueHighestElo = rating;
-        if (rating < trueLowestElo) trueLowestElo = rating;
-
-        const date = new Date(game.end_time * 1000);
-        const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-
-        if (!seenMonths.has(monthKey)) { // for the elo graph
-            history.push({
-                date: date.toLocaleDateString('en-US', { month: 'short' }),
-                rating,
-                monthIndex: date.getMonth()
-            });
-            seenMonths.add(monthKey);
+        if (rating > peaks[mode as keyof typeof peaks]) {
+            peaks[mode as keyof typeof peaks] = rating;
         }
-    }
+        if (rating < lows[mode as keyof typeof lows]) {
+            lows[mode as keyof typeof lows] = rating;
+        }
 
-    const eloHistory = history.reverse();
+        if (!foundStart[mode as keyof typeof foundStart]) {
+            starts[mode as keyof typeof starts] = rating;
+            foundStart[mode as keyof typeof foundStart] = true;
+        }
+        ends[mode as keyof typeof ends] = rating;
 
-    if (trueLowestElo === Infinity) trueLowestElo = 0;
+        if (!monthlyStats[monthKey]) {
+            monthlyStats[monthKey] = {
+                date: dateObj.toLocaleDateString('en-US', { month: 'short' }),
+                monthIndex: dateObj.getMonth(),
+            };
+        }
+        monthlyStats[monthKey][mode as 'Blitz' | 'Rapid' | 'Bullet'] = rating;
+    });
 
-    const startElo = eloHistory.length > 0 ? eloHistory[0].rating : 0;
-    const currentElo = eloHistory.length > 0 ? eloHistory[eloHistory.length - 1].rating : 0;
-    const eloChange = currentElo - startElo;
+    // Format Output
+    const eloHistory = Object.values(monthlyStats).sort((a, b) => a.monthIndex - b.monthIndex);
+
+    const eloChange = {
+        Blitz: ends.Blitz - starts.Blitz,
+        Rapid: ends.Rapid - starts.Rapid,
+        Bullet: ends.Bullet - starts.Bullet
+    };
+
+    const peakElo = Math.max(peaks.Blitz, peaks.Rapid, peaks.Bullet, 0);
 
     return {
         eloHistory,
-        highestElo: trueHighestElo,
-        lowestElo: trueLowestElo,
-        eloChange
+        eloChange,
+        peakElo,
+        peaks,
+        starts,
+        ends
     };
 }
