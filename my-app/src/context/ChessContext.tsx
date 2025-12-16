@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import { UserData } from '@/types'; // Use your shared type
+import { UserData } from '@/types';
 
 interface ChessContextType {
     stats: UserData;

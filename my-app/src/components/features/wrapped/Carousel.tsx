@@ -8,7 +8,6 @@ import { useChessStats } from '@/context/ChessContext';
 
 // Import Slides
 import WelcomeSlide from './stories/WelcomeSlide';
-import JoinDateSlide from './stories/JoinDateSlide';
 import TotalGamesSlide from './stories/TotalGamesSlide';
 import EloGraphSlide from './stories/EloGraphSlide';
 import OpeningCountSlide from './stories/OpeningCountSlide';
@@ -41,7 +40,6 @@ export default function Carousel() {
     // Slides
     const allSlides = [
         { id: 'welcome', component: <WelcomeSlide /> },
-        { id: 'join', component: <JoinDateSlide />, condition: () => new Date(data.joinDate * 1000).getFullYear() === data.year },
         { id: 'games', component: <TotalGamesSlide /> },
         { id: 'elo', component: <EloGraphSlide /> },
         { id: 'op_count', component: <OpeningCountSlide /> },

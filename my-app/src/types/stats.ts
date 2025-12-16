@@ -7,6 +7,11 @@ export interface GameStats {
     gamesByVariant: { name: string; count: number }[];
     mostPlayedVariant: string;
 
+    wins: number;
+    losses: number;
+    draws: number;
+    winRate: number;
+
     // Elo
     eloHistory: { date: string; rating: number; monthIndex: number }[];
     eloChange: number;

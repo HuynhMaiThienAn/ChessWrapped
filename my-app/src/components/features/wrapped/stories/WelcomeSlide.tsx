@@ -2,14 +2,13 @@
 
 import { motion } from 'framer-motion';
 import { Crown, Trophy, Sparkles, Star } from 'lucide-react';
-import { useRef, useEffect } from 'react'; // [!code ++]
+import { useRef, useEffect } from 'react';
 import StoryCard from '@/components/ui/StoryCard';
 import { itemVariants, containerVariants } from './shared/animations';
 import { CONTAINERS, TYPOGRAPHY } from './shared/styles';
 import { useChessStats } from '@/context/ChessContext';
 import { StoryBackground } from './shared';
 
-// 👇 1. Helper Component to Auto-Scale Text
 const AutoFitText = ({ text }: { text: string }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const textRef = useRef<HTMLDivElement>(null);
@@ -20,7 +19,6 @@ const AutoFitText = ({ text }: { text: string }) => {
             const txt = textRef.current;
             if (!container || !txt) return;
 
-            // Reset scale to measure true width
             txt.style.transform = 'scale(1)';
 
             const containerWidth = container.clientWidth;
@@ -40,11 +38,9 @@ const AutoFitText = ({ text }: { text: string }) => {
     }, [text]);
 
     return (
-        // The container creates a defined boundary (px-4 in parent component)
         <div ref={containerRef} className="w-full flex justify-center items-center overflow-hidden">
             <div
                 ref={textRef}
-                // Set the maximum size here (e.g., text-5xl)
                 className="whitespace-nowrap origin-center font-bold text-white drop-shadow-md text-4xl md:text-5xl transition-transform duration-200"
             >
                 {text}
@@ -64,7 +60,6 @@ export default function WelcomeSlide() {
         <StoryCard id="slide-welcome" className={CONTAINERS.slideCard}>
 
             <StoryBackground>
-                {/* Extra decor specific to welcome slide */}
                 <div className="absolute top-10 right-10 text-[#ffc800] opacity-20 rotate-12">
                     <Crown size={100} fill="currentColor" strokeWidth={0} />
                 </div>
@@ -96,10 +91,8 @@ export default function WelcomeSlide() {
                     </div>
                 </motion.div>
 
-                {/* 3. Username & Elo (Fixed Overflow with AutoFitText) */}
                 <motion.div variants={itemVariants} className="text-center w-full px-4 mb-2">
 
-                    {/* 👇 2. Replaced standard H1 with AutoFitText */}
                     <div className="mb-2 w-full">
                         <AutoFitText text={data.username} />
                     </div>
@@ -112,7 +105,7 @@ export default function WelcomeSlide() {
 
                 {/* 4. Fun Footer Comment */}
                 <motion.div variants={itemVariants}>
-                    <p className={TYPOGRAPHY.comment}>"Ready to see your stats?"</p>
+                    <p className={TYPOGRAPHY.comment} >"Ready to see your stats?"</p>
                 </motion.div>
 
             </motion.div>
