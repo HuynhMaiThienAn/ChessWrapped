@@ -1,17 +1,19 @@
 # ChessWrapped 2025
-https://chess-wrapped-l8m6.vercel.app/
+https://chesswrap.vercel.app/
 
 **A "Spotify Wrapped" style experience for Chess.com users, built with Next.js and the Chess.com Public API.**
 
-This application fetches archived game data for the year 2025, processes statistics client-side (win rates, accuracy, opening preferences), and visualizes the results in an interactive, animated carousel.
+![ChessWrapped Preview](public/app-images/homepage.png)
+![ChessWrapped Preview](public/app-images/how-it-work.png)
+![ChessWrapped Preview](public/app-images/key-features.png)
+
 
 ## 🛠️ Tech Stack
 
-- **Framework:** Next.js 14 (App Router)
+- **Framework:** Next.js
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **Animations:** Framer Motion
-- **State Management:** React Context API
 - **Data Source:** [Chess.com Public API](https://www.chess.com/news/view/published-data-api)
 - **Icons:** Lucide React
 
@@ -28,26 +30,7 @@ This application fetches archived game data for the year 2025, processes statist
     - Framer Motion handles the slide transitions and entrance animations.
     - Global Audio is managed in `layout.tsx` to persist across route changes.
 
-## 📂 Project Structure
-
-```bash
-├── app/
-│   ├── layout.tsx         # Root layout (Contains Global Audio Logic)
-│   ├── page.tsx           # Landing Page (Search & Validation)
-│   └── wrapped/
-│       └── [username]/    # Dynamic Route for user stats
-├── components/
-│   ├── ui/                # Reusable UI elements (Buttons, Cards)
-│   ├── stories/           # Individual Slide Components (EloGraph, Openings, etc.)
-│   └── BackgroundMusic.tsx # Singleton Audio Component
-├── context/
-│   └── ChessContext.tsx   # Global State for parsing & storing API data
-├── hooks/
-│   └── useSound.ts        # Helper for SFX
-└── public/                # Static assets (mp3 files)
-
-```
-
+---
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
