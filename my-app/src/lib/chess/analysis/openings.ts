@@ -27,9 +27,16 @@ export function analyzeOpenings(games: ChessGame[], username: string) {
 
     games.forEach(game => {
         const rawName = getOpeningFromPGN(game.pgn);
-        const name = rawName.split(':')[0].trim();
 
-        if (name === 'Unknown' || name.startsWith('?')) return;
+        // The regex in util.ts handles the cleanup now.
+        const name = rawName.trim();
+
+        if (
+            name === 'Unknown' ||
+            name.startsWith('?') ||
+            name === 'undefined' ||
+            name === ''
+        ) return;
 
         const isWhite = game.white.username.toLowerCase() === lowerUsername;
         const userSide = isWhite ? game.white : game.black;
@@ -59,7 +66,7 @@ export function analyzeOpenings(games: ChessGame[], username: string) {
                 if (sortType === 'best') return b.count - a.count; // Most played
                 return a.winRate - b.winRate; // Lowest winrate first for 'worst'
             })
-            .slice(0, 1);
+            .slice(0, 10);
     };
 
     return {

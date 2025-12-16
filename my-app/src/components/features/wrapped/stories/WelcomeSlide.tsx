@@ -2,34 +2,60 @@
 
 import { motion } from 'framer-motion';
 import { Crown, Trophy, Sparkles, Star } from 'lucide-react';
+import { useRef, useEffect } from 'react';
 import StoryCard from '@/components/ui/StoryCard';
 import { itemVariants, containerVariants } from './shared/animations';
 import { CONTAINERS, TYPOGRAPHY } from './shared/styles';
 import { useChessStats } from '@/context/ChessContext';
 import { StoryBackground } from './shared';
 
+const AutoFitText = ({ text }: { text: string }) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const textRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const resize = () => {
+            const container = containerRef.current;
+            const txt = textRef.current;
+            if (!container || !txt) return;
+
+            txt.style.transform = 'scale(1)';
+
+            const containerWidth = container.clientWidth;
+            const textWidth = txt.scrollWidth;
+
+            // Only scale down if text is wider than container
+            if (textWidth > containerWidth) {
+                const scale = containerWidth / textWidth;
+                txt.style.transform = `scale(${scale})`;
+            }
+        };
+
+        // Run on mount and window resize
+        resize();
+        window.addEventListener('resize', resize);
+        return () => window.removeEventListener('resize', resize);
+    }, [text]);
+
+    return (
+        <div ref={containerRef} className="w-full flex justify-center items-center overflow-hidden">
+            <div
+                ref={textRef}
+                className="whitespace-nowrap origin-center font-bold text-white drop-shadow-md text-4xl md:text-5xl transition-transform duration-200 leading-[1.5]"
+            >
+                {text}
+            </div>
+        </div>
+    );
+};
+
 export default function WelcomeSlide() {
     const { stats: data } = useChessStats();
-
-    const currentElo = data.eloHistory.length > 0
-        ? data.eloHistory[data.eloHistory.length - 1].rating
-        : 400;
-
-    // --- LOGIC: Dynamic Font Sizing ---
-    // If name is longer than 12 chars, shrink the text.
-    // If longer than 18, shrink it more.
-    const nameLength = data.username.length;
-    const nameSizeClass = nameLength > 18
-        ? "text-2xl md:text-3xl"
-        : nameLength > 12
-            ? "text-3xl md:text-4xl"
-            : "text-4xl md:text-5xl";
 
     return (
         <StoryCard id="slide-welcome" className={CONTAINERS.slideCard}>
 
             <StoryBackground>
-                {/* Extra decor specific to welcome slide */}
                 <div className="absolute top-10 right-10 text-[#ffc800] opacity-20 rotate-12">
                     <Crown size={100} fill="currentColor" strokeWidth={0} />
                 </div>
@@ -61,22 +87,16 @@ export default function WelcomeSlide() {
                     </div>
                 </motion.div>
 
-                {/* 3. Username & Elo (Fixed Overflow) */}
                 <motion.div variants={itemVariants} className="text-center w-full px-4 mb-2">
-                    <h1
-                        className={`${nameSizeClass} font-bold text-white mb-2 drop-shadow-md break-all leading-tight`}
-                    >
-                        {data.username}
-                    </h1>
-                    <div className="inline-block bg-[#3e3c39] px-6 py-2 rounded-2xl border-2 border-[#ffffff10]">
-                        <span className="text-[#989795] font-bold text-sm uppercase mr-2">Current Elo</span>
-                        <span className="text-white font-black text-xl">{currentElo}</span>
+
+                    <div className="w-full">
+                        <AutoFitText text={data.username} />
                     </div>
                 </motion.div>
 
                 {/* 4. Fun Footer Comment */}
                 <motion.div variants={itemVariants}>
-                    <p className={TYPOGRAPHY.comment}>"Ready to see your stats?"</p>
+                    <p className={TYPOGRAPHY.comment} >"Ready to see your stats?"</p>
                 </motion.div>
 
             </motion.div>

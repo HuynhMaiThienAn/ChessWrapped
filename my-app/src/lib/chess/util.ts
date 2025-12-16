@@ -6,31 +6,67 @@ export function parseUsernameFromUrl(url: string | undefined, fallback: string):
 
 export function getPgnTag(pgn: string | undefined, tag: string): string | null {
     if (!pgn) return null;
-    // Fix: Removed extra escape on the closing bracket
-    const match = pgn.match(new RegExp(`\\[${tag}\\s+"([^"]+)"\\]`));
-    return match ? match[1] : null;
+
+    const tagKey = `[${tag} "`;
+    const startIndex = pgn.indexOf(tagKey);
+
+    if (startIndex === -1) return null;
+
+    const valueStart = startIndex + tagKey.length;
+    const valueEnd = pgn.indexOf('"]', valueStart);
+
+    if (valueEnd === -1) return null;
+
+    return pgn.substring(valueStart, valueEnd);
 }
 
+// 👇 UPDATED: Added logic to strip "with ..."
 export function getOpeningFromPGN(pgn: string | undefined): string {
     if (!pgn) return 'Unknown';
 
-    // 1. Try ECOUrl first (Most reliable on Chess.com)
-    // Fix: Used \] instead of \\] to correctly match the closing bracket
+    let name = '';
+
+    // 1. Try ECOUrl first
     const urlMatch = pgn.match(/\[ECOUrl\s+"([^"]+)"\]/);
     if (urlMatch && urlMatch[1]) {
         const parts = urlMatch[1].split('/');
-        const slug = parts[parts.length - 1];
-        // Clean up the slug: "Sicilian-Defense-Najdorf" -> "Sicilian Defense Najdorf"
-        return slug.replace(/-/g, ' ').replace(/Variation/g, '').trim();
+        let slug = parts[parts.length - 1];
+        // Strip trailing move sequences from URL slug
+        slug = slug.replace(/(-[0-9]+-[a-zA-Z0-9]+)+$/g, '');
+        name = decodeURIComponent(slug).replace(/-/g, ' ');
+    }
+    // 2. Fallback to Opening Tag
+    else {
+        const openingMatch = pgn.match(/\[Opening\s+"([^"]+)"\]/);
+        if (openingMatch && openingMatch[1] && openingMatch[1] !== '?') {
+            name = openingMatch[1];
+        }
     }
 
-    // 2. Fallback to standard Opening tag
-    const openingMatch = pgn.match(/\[Opening\s+"([^"]+)"\]/);
-    if (openingMatch && openingMatch[1] && openingMatch[1] !== '?') {
-        return openingMatch[1];
-    }
+    if (!name || name === 'Unknown') return 'Unknown';
 
-    return 'Unknown';
+    // --- CLEANUP PIPELINE ---
+
+    // 1. Remove "Variation"
+    name = name.replace(/\bVariation\b/gi, '');
+
+    // 2. 👇 NEW: Remove "with" and everything after it (e.g. "Modern Defense with 1-e4")
+    name = name.replace(/\s+with\b.*/i, '');
+
+    // 3. Remove punctuation
+    name = name.replace(/[:|,]/g, '');
+
+    // 4. Remove Numbered Moves (e.g. "1.e4", "1-d4")
+    name = name.replace(/\b\d+[\.\-]+\s*(\.{3})?\s*\S+/g, '');
+
+    // 5. Remove Ellipsis Moves (e.g. "...g6")
+    name = name.replace(/\.{3}\s*\S+/g, '');
+
+    // 6. Remove Standalone Notation
+    const moveRegex = /\b(O-O(-O)?|[NBKQR]?[a-h]?[1-8]?x?[a-h][1-8])\b/g;
+    name = name.replace(moveRegex, '');
+
+    return name.replace(/\s+/g, ' ').trim();
 }
 
 export function normalizeAvatar(url: string | undefined): string {

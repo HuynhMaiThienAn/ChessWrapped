@@ -8,10 +8,8 @@ import { useChessStats } from '@/context/ChessContext';
 
 // Import Slides
 import WelcomeSlide from './stories/WelcomeSlide';
-import JoinDateSlide from './stories/JoinDateSlide';
 import TotalGamesSlide from './stories/TotalGamesSlide';
 import EloGraphSlide from './stories/EloGraphSlide';
-import OpeningCountSlide from './stories/OpeningCountSlide';
 import ImpressiveMatchesSlide from './stories/ImpressiveMatchesSlide';
 import WorstOpeningSlide from './stories/WorstOpeningSlide';
 import EndSlide from './stories/EndSlide';
@@ -27,10 +25,8 @@ export default function Carousel() {
     const clickSoundRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
-        // We reuse 'keypress.mp3' for a snappy button click effect.
-        // You can change this to '/click.mp3' if you have a specific file.
         clickSoundRef.current = new Audio('/hover.mp3');
-        if (clickSoundRef.current) clickSoundRef.current.volume = 0.4;
+        if (clickSoundRef.current) clickSoundRef.current.volume = 0.3;
     }, []);
 
     const playClick = () => {
@@ -40,13 +36,11 @@ export default function Carousel() {
         }
     };
 
-    // Filter Slides based on data availability
+    // Slides
     const allSlides = [
         { id: 'welcome', component: <WelcomeSlide /> },
-        { id: 'join', component: <JoinDateSlide />, condition: () => new Date(data.joinDate * 1000).getFullYear() === data.year },
         { id: 'games', component: <TotalGamesSlide /> },
         { id: 'elo', component: <EloGraphSlide /> },
-        { id: 'op_count', component: <OpeningCountSlide /> },
         { id: 'op_top', component: <TopOpeningSlide /> },
         { id: 'op_worst', component: <WorstOpeningSlide />, condition: () => (data.worstOpeningsWhite.length > 0 || data.worstOpeningsBlack.length > 0) },
         { id: 'tourney', component: <TournamentsSlide />, condition: () => data.tournamentCount > 0 },
@@ -58,12 +52,12 @@ export default function Carousel() {
     const slides = allSlides.filter(slide => slide.condition ? slide.condition() : true);
 
     const handleNext = useCallback(() => {
-        playClick(); // Play sound
+        playClick();
         if (currentStep < slides.length - 1) setCurrentStep(c => c + 1);
     }, [currentStep, slides.length]);
 
     const handlePrev = useCallback(() => {
-        playClick(); // Play sound
+        playClick();
         if (currentStep > 0) setCurrentStep(c => c - 1);
     }, [currentStep]);
 
@@ -83,13 +77,13 @@ export default function Carousel() {
     return (
         <div className="fixed inset-0 bg-[#81b64c] flex flex-col items-center p-4 font-sans text-white overflow-hidden select-none">
 
-            {/* Background Texture (Polka Dots) */}
+            {/* Background Texture */}
             <div className="absolute inset-0 opacity-10 pointer-events-none"
                  style={{ backgroundImage: 'radial-gradient(#fff 3px, transparent 3px)', backgroundSize: '30px 30px' }}
             />
 
-            {/* TOP HUD: Home & Progress */}
-            <div className="w-full max-w-[380px] flex items-center gap-4 mt-4 mb-2 shrink-0 z-50">
+            {/* TOP HUD */}
+            <div className="w-full max-w-[380px] flex items-center gap-4 -mt-2 mb-2 shrink-0 z-50 pb-13">
                 <Link
                     href="/"
                     onClick={playClick}
@@ -104,7 +98,6 @@ export default function Carousel() {
                         className="h-full bg-[#ffc800] rounded-full transition-all duration-500 shadow-[0_2px_0_rgba(0,0,0,0.1)] relative"
                         style={{ width: `${((currentStep + 1) / slides.length) * 100}%` }}
                     >
-                        {/* Shine on bar */}
                         <div className="absolute top-0 right-0 bottom-0 width-2 bg-white/40 blur-[2px]" />
                     </div>
                 </div>
@@ -115,8 +108,8 @@ export default function Carousel() {
                 </div>
             </div>
 
-            {/* SLIDE AREA (The "Screen") */}
-            <div className="flex-1 w-full flex items-center justify-center relative min-h-0 perspective-1000 py-2">
+            {/* SLIDE AREA */}
+            <div className="flex-1 w-full flex items-center justify-center relative min-h-0 perspective-1000 py-2 h-full pb-30">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={slides[currentStep].id}
@@ -126,35 +119,32 @@ export default function Carousel() {
                         transition={{ type: "spring", stiffness: 200, damping: 20 }}
                         className="w-full flex justify-center h-full items-center"
                     >
-                        {/* Constrain width to keep it looking like a compact card/cartridge */}
-                        <div className="w-full max-w-[380px] h-full max-h-[700px] flex items-center justify-center">
+                        <div className="w-full max-w-[350px] h-[580px] max-h-[80vh] flex items-center justify-center">
                             {slides[currentStep].component}
                         </div>
                     </motion.div>
                 </AnimatePresence>
             </div>
 
-            {/* CONTROLS (Chunky Buttons) */}
-            <div className="w-full max-w-[380px] flex gap-4 justify-between mt-2 mb-6 shrink-0 z-50">
-                {/* Back Button */}
+            {/* CONTROLS */}
+            <div className="absolute bottom-3 w-full max-w-[300px] flex gap-4 justify-between z-50">
                 <button
                     onClick={handlePrev}
                     disabled={currentStep === 0}
-                    className="w-16 h-16 rounded-[20px] bg-white text-[#302e2b] border-b-8 border-r-4 border-gray-300 flex items-center justify-center active:border-b-0 active:border-r-0 active:translate-y-2 active:translate-x-1 transition-all disabled:opacity-0 disabled:pointer-events-none"
+                    className="w-12 h-12 rounded-[20px] bg-white text-[#302e2b] border-b-4 border-r-4 border-gray-300 flex items-center justify-center active:border-b-0 active:border-r-0 active:translate-y-2 active:translate-x-1 transition-all disabled:opacity-0 disabled:pointer-events-none "
                 >
-                    <ArrowLeft size={32} strokeWidth={4} />
+                    <ArrowLeft size={20} strokeWidth={4} />
                 </button>
 
-                {/* Next / Start Button */}
                 {!isLastSlide ? (
                     <button
                         onClick={handleNext}
-                        className="flex-1 h-16 bg-[#ffc800] hover:bg-[#ffda66] text-[#302e2b] rounded-[20px] border-b-8 border-r-4 border-[#e6b800] flex items-center justify-center gap-3 active:border-b-0 active:border-r-0 active:translate-y-2 active:translate-x-1 transition-all"
+                        className="flex-1 h-12 bg-[#ffc800] hover:bg-[#ffda66] text-[#302e2b] rounded-[20px] border-b-4 border-r-4 border-[#e6b800] flex items-center justify-center gap-3 active:border-b-0 active:border-r-0 active:translate-y-2 active:translate-x-1 transition-all"
                     >
-                        <span className="font-black text-xl tracking-wider uppercase">
+                        <span className="font-black text-l tracking-wider uppercase">
                             {isFirstSlide ? "Start!" : "Next"}
                         </span>
-                        <ArrowRight size={32} strokeWidth={4} />
+                        <ArrowRight size={20} strokeWidth={4} />
                     </button>
                 ) : (
                     <button
@@ -162,10 +152,10 @@ export default function Carousel() {
                             playClick();
                             window.location.reload();
                         }}
-                        className="flex-1 h-16 bg-[#ffc800] hover:bg-[#ffda66] text-[#302e2b] rounded-[20px] border-b-8 border-r-4 border-[#e6b800] flex items-center justify-center gap-3 active:border-b-0 active:border-r-0 active:translate-y-2 active:translate-x-1 transition-all"
+                        className="flex-1 h-12 bg-[#ffc800] hover:bg-[#ffda66] text-[#302e2b] rounded-[20px] border-b-4 border-r-4 border-[#e6b800] flex items-center justify-center gap-3 active:border-b-0 active:border-r-0 active:translate-y-2 active:translate-x-1 transition-all"
                     >
-                        <span className="font-black text-xl tracking-wider uppercase">Replay</span>
-                        <RotateCcw size={32} strokeWidth={4} />
+                        <span className="font-black text-l tracking-wider uppercase">Replay</span>
+                        <RotateCcw size={20} strokeWidth={4} />
                     </button>
                 )}
             </div>

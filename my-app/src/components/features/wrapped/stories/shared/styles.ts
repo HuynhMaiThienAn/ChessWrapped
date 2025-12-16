@@ -9,7 +9,7 @@ export const TYPOGRAPHY = {
     bigStat: "text-6xl md:text-7xl font-bold text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.2)] my-2",
 
     // Fun commentary quotes
-    comment: "text-xl font-bold text-[#81b64c] bg-white px-4 py-2 rounded-xl shadow-sm rotate-[-1deg] inline-block mt-4 border-2 border-[#81b64c]/20",
+    comment: "text-l font-bold text-[#81b64c] bg-white px-4 py-2 rounded-xl shadow-sm rotate-[-1deg] inline-block mt-4 border-2 border-[#81b64c]/20",
 
     // The bubble container for text at the bottom
     cardMessage: "w-full max-w-[280px] bg-white/10 backdrop-blur-md p-4 rounded-3xl border-2 border-white/10 mt-6",

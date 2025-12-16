@@ -1,117 +1,252 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, LineChart as LineChartIcon } from 'lucide-react';
-import { LineChart, Line, Tooltip, ResponsiveContainer, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { TrendingUp, ArrowUp, ArrowDown, Minus, Crown } from 'lucide-react';
+import { LineChart, Line, Tooltip, ResponsiveContainer, XAxis, YAxis, CartesianGrid, LabelList } from 'recharts';
 import StoryCard from '@/components/ui/StoryCard';
-import { StoryHeader, StoryBackground, containerVariants, itemVariants, CONTAINERS } from './shared';
+import { StoryBackground, containerVariants, itemVariants, CONTAINERS } from './shared';
 import { useChessStats } from '@/context/ChessContext';
+
+// Helper for Peak Comment
+const getPeakComment = (rating: number) => {
+    if (rating < 800) return "Not bad :)";
+    if (rating < 1200) return "Above average :D";
+    if (rating < 1600) return "Half way to Grandmaster :D";
+    if (rating < 2000) return "Impressive :D";
+    if (rating < 2400) return "Krazy :)";
+    return "The GOAT!!!";
+};
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const RANK_COLORS = ['#81b64c', '#ffffff', '#ca3431']; // Green, White, Red
 
 export default function EloGraphSlide() {
     const { stats: data } = useChessStats();
-
-    // 1. Add state to delay chart rendering
     const [shouldRenderChart, setShouldRenderChart] = useState(false);
 
-    // 2. Use Effect to set state to true after slide animation (~500ms)
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setShouldRenderChart(true);
-        }, 500);
+        const timer = setTimeout(() => setShouldRenderChart(true), 500);
         return () => clearTimeout(timer);
     }, []);
 
-    const hasHistory = data.eloHistory && data.eloHistory.length > 0;
+    const fullHistory = useMemo(() => {
+        const rawHistory = data.eloHistory || [];
+        return MONTHS.map((monthName, index) => {
+            const existingData = rawHistory.find(h => h.monthIndex === index);
+            return {
+                date: monthName,
+                monthIndex: index,
+                Blitz: existingData?.Blitz ?? null,
+                Rapid: existingData?.Rapid ?? null,
+                Bullet: existingData?.Bullet ?? null,
+            };
+        });
+    }, [data.eloHistory]);
 
-    const ratings = hasHistory ? data.eloHistory.map(e => e.rating) : [0];
-    const peak = Math.max(...ratings, 0);
-    const lowest = Math.min(...ratings, 0);
-    const isPositive = data.eloChange >= 0;
+    // --- 2. SORTING LOGIC (By Current Rating: Highest -> Lowest) ---
+    const sortedModes = useMemo(() => {
+        const modes = ['Blitz', 'Rapid', 'Bullet'] as const;
 
-    const yMin = Math.max(0, lowest - 100);
-    const yMax = peak + 100;
+        // Find the latest valid rating for each mode
+        const getLatestRating = (mode: string) => {
+            for (let i = fullHistory.length - 1; i >= 0; i--) {
+                const val = fullHistory[i][mode as 'Blitz' | 'Rapid' | 'Bullet'];
+                if (val !== null && val !== undefined) return val;
+            }
+            return 0;
+        };
+
+        return [...modes].sort((a, b) => getLatestRating(b) - getLatestRating(a));
+    }, [fullHistory]);
+
+    // --- 3. STATS CALCULATION ---
+    const getMinMax = (key: 'Blitz' | 'Rapid' | 'Bullet') => {
+        const values = fullHistory.map(h => h[key]).filter(v => v !== null) as number[];
+        if (values.length === 0) return { min: 0, max: 0 };
+        return { min: Math.min(...values), max: Math.max(...values) };
+    };
+
+    const getChange = (key: 'Blitz' | 'Rapid' | 'Bullet') => {
+        // @ts-ignore
+        return data.eloChange?.[key] ?? 0;
+    };
+
+    const stats = {
+        Blitz: { ...getMinMax('Blitz'), change: getChange('Blitz') },
+        Rapid: { ...getMinMax('Rapid'), change: getChange('Rapid') },
+        Bullet: { ...getMinMax('Bullet'), change: getChange('Bullet') },
+    };
+
+    const allRatings = fullHistory.flatMap(h => [h.Blitz, h.Rapid, h.Bullet]).filter(Number) as number[];
+    const yMin = allRatings.length ? Math.max(0, Math.min(...allRatings) - 100) : 0;
+    const yMax = allRatings.length ? Math.max(...allRatings) + 100 : 2000;
+
+    const CustomLabel = (props: any) => {
+        const { x, y, value, variantName } = props;
+        const stat = stats[variantName as 'Blitz' | 'Rapid' | 'Bullet'];
+        if (!stat || value === null) return null;
+
+        const isMin = value === stat.min;
+        const isMax = value === stat.max;
+
+        if (!isMin && !isMax) return null;
+
+        // Determine color based on rank
+        const rankIndex = sortedModes.indexOf(variantName);
+        const color = RANK_COLORS[rankIndex];
+
+        let dy = 0;
+        if (isMax) {
+            // If it's a peak, default to UP, but stagger by rank
+            dy = -10 - (2 - rankIndex) * 5;
+        } else {
+            // If it's a valley, default to DOWN, but stagger
+            dy = 15 + rankIndex * 5;
+        }
+
+        return (
+            <text
+                x={x}
+                y={y}
+                dy={dy}
+                fill={color}
+                fontSize={9}
+                fontWeight="900"
+                textAnchor="middle"
+                stroke="#262421" strokeWidth={3} paintOrder="stroke"
+            >
+                {value}
+            </text>
+        );
+    };
 
     return (
         <StoryCard id="slide-elo" className={CONTAINERS.slideCard}>
             <StoryBackground>
-                <div className="absolute top-10 left-10 text-white opacity-5 animate-float"><LineChartIcon size={60} /></div>
-                <div className="absolute bottom-20 right-10 text-white opacity-5 animate-float" style={{ animationDelay: '2s' }}><TrendingUp size={50} /></div>
+                <div className="absolute top-10 left-10 text-white opacity-5 animate-float"><TrendingUp size={60} /></div>
             </StoryBackground>
 
             <motion.div className={CONTAINERS.slideContainer} variants={containerVariants} initial="hidden" animate="visible">
-                <StoryHeader
-                    icon={<TrendingUp size={24} />}
-                    iconColor={isPositive ? "text-[#81b64c]" : "text-red-500"}
-                    title={`${data.mostPlayedVariant} Rating`}
-                />
 
-                <motion.div variants={itemVariants} className="w-full h-48 mb-6 relative z-10">
-                    {hasHistory ? (
-                        <div className="w-full h-full">
-                            {/* 3. Only render ResponsiveContainer when shouldRenderChart is true */}
-                            {shouldRenderChart && (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={data.eloHistory} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3e3c39" />
-                                        <XAxis
-                                            dataKey="date"
-                                            stroke="#989795"
-                                            tick={{ fill: '#989795', fontSize: 10, fontWeight: 600 }}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            minTickGap={30}
-                                        />
-                                        <YAxis
-                                            domain={[yMin, yMax]}
-                                            stroke="#989795"
-                                            tick={{ fill: '#989795', fontSize: 10, fontWeight: 600 }}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            width={40}
-                                        />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: '#262421', border: '1px solid #3e3c39', borderRadius: '8px', color: '#fff' }}
-                                            itemStyle={{ color: isPositive ? '#81b64c' : '#cc3333' }}
-                                            formatter={(value: number) => [value, 'Rating']}
-                                        />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="rating"
-                                            stroke={isPositive ? "#81b64c" : "#cc3333"}
-                                            strokeWidth={3}
-                                            dot={{ r: 0 }}
-                                            activeDot={{ r: 6, fill: isPositive ? '#81b64c' : '#cc3333', stroke: '#fff' }}
+                {/* Header */}
+                <motion.div variants={itemVariants} className="w-full flex justify-start items-center px-4 mb-2 z-10">
+                    <div className=" bg-white rounded-full shadow-lg mr-3">
+                        <img
+                            src={data.avatarUrl}
+                            alt={data.username}
+                            className="w-12 h-12 rounded-full object-cover border-4 border-[#81b64c]"
+                        />
+                    </div>
+                    <h2 className="text-2xl font-bold text-white drop-shadow-md">
+                        Rating History
+                    </h2>
+                </motion.div>
 
-                                            // Animation settings
-                                            isAnimationActive={true}
-                                            animationDuration={2000}
-                                            animationEasing="ease-out"
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center text-lg text-[#989795]">
-                            No rating history available for visualization.
-                        </div>
+                {/* Legend (Sorted by ELO) */}
+                <motion.div variants={itemVariants} className="flex gap-4 mb-2 z-10 bg-[#262421] p-3 rounded-xl border border-[#3e3c39] shadow-lg">
+                    {sortedModes.map((mode, index) => {
+                        // 👇 UPDATED: Use the Year Change (Start vs End)
+                        const deviation = stats[mode].change;
+
+                        return (
+                            <div key={mode} className="flex flex-col items-center">
+                                <span className="text-[10px] font-bold uppercase mb-1" style={{ color: RANK_COLORS[index] }}>
+                                    {mode}
+                                </span>
+                                <div className="flex items-center gap-1 text-white font-bold text-sm">
+                                    {deviation > 0 ? (
+                                        <ArrowUp size={14} className="text-[#81b64c]" /> // Green Up
+                                    ) : deviation < 0 ? (
+                                        <ArrowDown size={14} className="text-[#ca3431]" /> // Red Down
+                                    ) : (
+                                        <Minus size={14} className="text-[#989795]" /> // Grey Dash
+                                    )}
+                                    {Math.abs(deviation)}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </motion.div>
+
+                {/* Graph */}
+                <motion.div
+                    variants={itemVariants}
+                    className="w-[100%] h-40 mb-2 relative z-10 bg-[#262421] rounded-2xl border border-[#3e3c39] p-2 shadow-inner"
+                >
+                    {shouldRenderChart && (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={fullHistory} margin={{ top: 15, right: 15, bottom: 0, left: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3e3c39" opacity={0.5} />
+                                <XAxis
+                                    dataKey="date"
+                                    stroke="#989795"
+                                    tick={{ fill: '#989795', fontSize: 9 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    dy={5}
+                                    interval={0}
+                                />
+                                <YAxis
+                                    domain={[yMin, yMax]}
+                                    stroke="#989795"
+                                    tick={{ fill: '#989795', fontSize: 9, fontWeight: 'bold' }}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    width={35}
+                                />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: '#1f1d1a', border: '1px solid #ffc800', borderRadius: '8px' }}
+                                    itemStyle={{ fontSize: '11px', fontWeight: 'bold' }}
+                                />
+                                {/* Lines (Sorted) */}
+                                {sortedModes.map((mode, index) => (
+                                    <Line
+                                        key={mode}
+                                        type="monotone"
+                                        dataKey={mode}
+                                        stroke={RANK_COLORS[index]}
+                                        strokeWidth={3}
+                                        dot={{ r: 2, fill: RANK_COLORS[index], strokeWidth: 0 }}
+                                        activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
+                                        connectNulls
+                                    >
+                                        <LabelList content={(props: any) => <CustomLabel {...props} variantName={mode} />} />
+                                    </Line>
+                                ))}
+                            </LineChart>
+                        </ResponsiveContainer>
                     )}
                 </motion.div>
 
-                <motion.div variants={itemVariants} className="flex items-center justify-center gap-8 mb-6 w-full">
-                    <div className="text-center">
-                        <div className="text-[#989795] text-[10px] uppercase font-bold tracking-widest mb-1">Year Change</div>
-                        <div className={`text-3xl font-black ${isPositive ? 'text-[#81b64c]' : 'text-red-500'}`}>
-                            {data.eloChange > 0 ? '+' : ''}{data.eloChange}
+                {/* Footer */}
+                <motion.div variants={itemVariants} className="w-full px-6 z-10">
+                    <div
+                        className="bg-[#262421] border-2 border-[#ffc800] rounded-2xl p-4 flex items-center gap-4 shadow-[0_4px_0_#b38b00] relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-full bg-white/5 pointer-events-none"/>
+                        <div className="bg-[#ffc800] p-3 rounded-xl text-[#302e2b]">
+                            <Crown size={28} fill="currentColor"/>
+                        </div>
+                        <div className="flex flex-col text-left">
+                            <span className="text-[#989795] font-bold text-[10px] uppercase tracking-widest">
+                                Peak Rating
+                            </span>
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-3xl font-black text-white leading-none">
+                                    {/* @ts-ignore */}
+                                    {data.peakElo || 0}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                    <div className="w-px h-10 bg-[#3e3c39]"></div>
-                    <div className="text-center">
-                        <div className="text-[#989795] text-[10px] uppercase font-bold tracking-widest mb-1">Peak Rating</div>
-                        <div className="text-3xl font-black text-white">{peak}</div>
+                    <div className="mt-2 text-center">
+                        <span className="text-[#ffc800] font-bold text-xs italic truncate max-w-[120px]">
+                            {/* @ts-ignore */}
+                            "{getPeakComment(data.peakElo || 0)}"
+                        </span>
                     </div>
                 </motion.div>
+
             </motion.div>
         </StoryCard>
     );

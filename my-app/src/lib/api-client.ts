@@ -16,7 +16,7 @@ const apiClient = axios.create({
 })
 
 // generic API function
-export const apiRequest = async <T>(url: string, method: 'GET' | 'POST', data?: any): Promise<T> => {
+export const apiRequest = async <T>(url: string, method: 'GET' | 'POST', data?: string): Promise<T> => {
     const response: AxiosResponse<T> = await apiClient({
         method,
         url,

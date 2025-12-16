@@ -7,9 +7,27 @@ export interface GameStats {
     gamesByVariant: { name: string; count: number }[];
     mostPlayedVariant: string;
 
+    wins: number;
+    losses: number;
+    draws: number;
+    winRate: number;
+
     // Elo
-    eloHistory: { date: string; rating: number; monthIndex: number }[];
-    eloChange: number;
+    eloHistory: {
+        date: string;
+        monthIndex: number;
+        Blitz?: number;
+        Rapid?: number;
+        Bullet?: number;
+    }[];
+
+    eloChange: {
+        Blitz: number;
+        Rapid: number;
+        Bullet: number;
+    };
+
+    peakElo: number;
 
     // Openings
     uniqueWhiteVariants: number;

@@ -31,7 +31,7 @@ export default function EndSlide({ onReset }: { onReset: () => void }) {
             >
                 <StoryHeader
                     icon={
-                        <div className="w-16 h-16 rounded-full border-2 border-[#ffc800] overflow-hidden shadow-sm">
+                        <div className="w-16 h-16 rounded-full border-2 border-[#ffc800] overflow-hidden">
                             <img
                                 src={data?.avatarUrl || defaultAvatar}
                                 alt="Profile"
