@@ -152,10 +152,10 @@ export default function Carousel() {
                             playClick();
                             window.location.reload();
                         }}
-                        className="flex-1 h-16 bg-[#ffc800] hover:bg-[#ffda66] text-[#302e2b] rounded-[20px] border-b-8 border-r-4 border-[#e6b800] flex items-center justify-center gap-3 active:border-b-0 active:border-r-0 active:translate-y-2 active:translate-x-1 transition-all"
+                        className="flex-1 h-12 bg-[#ffc800] hover:bg-[#ffda66] text-[#302e2b] rounded-[20px] border-b-4 border-r-4 border-[#e6b800] flex items-center justify-center gap-3 active:border-b-0 active:border-r-0 active:translate-y-2 active:translate-x-1 transition-all"
                     >
-                        <span className="font-black text-xl tracking-wider uppercase">Replay</span>
-                        <RotateCcw size={32} strokeWidth={4} />
+                        <span className="font-black text-l tracking-wider uppercase">Replay</span>
+                        <RotateCcw size={20} strokeWidth={4} />
                     </button>
                 )}
             </div>
