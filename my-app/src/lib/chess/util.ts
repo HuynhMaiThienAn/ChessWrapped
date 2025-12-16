@@ -26,17 +26,13 @@ export function getPgnTag(pgn: string | undefined, tag: string): string | null {
 export function getOpeningFromPGN(pgn: string | undefined): string {
     if (!pgn) return 'Unknown';
 
-    // 1. Try ECOUrl first (Most reliable on Chess.com)
-    // Fix: Used \] instead of \\] to correctly match the closing bracket
     const urlMatch = pgn.match(/\[ECOUrl\s+"([^"]+)"\]/);
     if (urlMatch && urlMatch[1]) {
         const parts = urlMatch[1].split('/');
         const slug = parts[parts.length - 1];
-        // Clean up the slug: "Sicilian-Defense-Najdorf" -> "Sicilian Defense Najdorf"
         return slug.replace(/-/g, ' ').replace(/Variation/g, '').trim();
     }
 
-    // 2. Fallback to standard Opening tag
     const openingMatch = pgn.match(/\[Opening\s+"([^"]+)"\]/);
     if (openingMatch && openingMatch[1] && openingMatch[1] !== '?') {
         return openingMatch[1];
