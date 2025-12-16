@@ -29,7 +29,12 @@ export function analyzeOpenings(games: ChessGame[], username: string) {
         const rawName = getOpeningFromPGN(game.pgn);
         const name = rawName.split(':')[0].trim();
 
-        if (name === 'Unknown' || name.startsWith('?')) return;
+        if (
+            name === 'Unknown' ||
+            name.startsWith('?') ||
+            name === 'undefined' || // avoid fetching undefined opening
+            name === ''
+        ) return;
 
         const isWhite = game.white.username.toLowerCase() === lowerUsername;
         const userSide = isWhite ? game.white : game.black;
