@@ -33,18 +33,35 @@ const getPieceFromMove = (move: string): string => {
     return 'Pawn';
 };
 
-// Robust helper to count moves by cleaning PGN
+// Robust helper to count moves
 const calculateMoveCount = (pgn: string): number => {
     if (!pgn) return 0;
 
+    // 1. Clean up PGN
     let clean = pgn
-        .replace(/\{[^}]+\}/g, '')     // Remove comments/timestamps
-        .replace(/\([^)]+\)/g, '')     // Remove variations
-        .replace(/\$\d+/g, '')         // Remove NAGs
-        .replace(/\d+\.+/g, ' ')       // Remove move numbers
-        .replace(/(1-0|0-1|1\/2-1\/2|\*)$/, '') // Remove result
+        // Remove timestamps/comments { ... }
+        .replace(/\{[^}]+\}/g, '')
+        // Remove variations ( ... ) - basic handling for non-nested
+        .replace(/\([^)]+\)/g, '')
+        // Remove NAGs $1, $2
+        .replace(/\$\d+/g, '')
+        // Remove Result at end
+        .replace(/(1-0|0-1|1\/2-1\/2|\*)$/, '')
         .trim();
 
+    // 2. Try to find the last move number (e.g. "45." or "45...")
+    // This is generally most accurate for standard PGNs
+    const moveNumberMatches = clean.match(/(\d+)\.+/g);
+
+    if (moveNumberMatches && moveNumberMatches.length > 0) {
+        const lastMatch = moveNumberMatches[moveNumberMatches.length - 1];
+        const num = parseInt(lastMatch.replace(/\.+/, ''));
+        if (!isNaN(num) && num > 0) return num;
+    }
+
+    // 3. Fallback: Token Counting (if numbering is broken)
+    // Remove move numbers to count tokens (e4, e5, Nf3)
+    clean = clean.replace(/\d+\.+/g, ' ');
     const tokens = clean.split(/\s+/).filter(t => t.length > 0);
     return Math.ceil(tokens.length / 2);
 };
@@ -60,7 +77,6 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
     let draws = 0;
     let totalSeconds = 0;
 
-    // Trackers for Highlights (Initialized as undefined to match GameStats interface)
     let longestGame: GameHighlight | undefined = undefined;
     let shortestGame: GameHighlight | undefined = undefined;
     let biggestUpset: UpsetHighlight | undefined = undefined;
@@ -91,7 +107,7 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
         const opponentSide = isWhite ? game.black : game.white;
         const result = userSide.result;
 
-        // --- PRE-CALCULATE MOVE COUNT ---
+        // --- CALCULATE MOVE COUNT ---
         let moveCount = 0;
         if (game.pgn) {
             moveCount = calculateMoveCount(game.pgn);
@@ -99,6 +115,7 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
 
         // --- CHECKMATE ANALYSIS ---
         if (userSide.result === 'checkmated' && game.pgn) {
+            // Clean simple PGN for piece extraction
             const cleanPgn = game.pgn
                 .replace(/\{[^}]+\}/g, '')
                 .replace(/1-0|0-1|1\/2-1\/2/g, '')
@@ -122,7 +139,7 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
             currentLossStreak = 0;
             if (currentWinStreak > longestWinStreak) longestWinStreak = currentWinStreak;
 
-            // Upset Calculation
+            // Upset
             const myElo = userSide.rating;
             const opElo = opponentSide.rating;
             const diff = opElo - myElo;
@@ -169,15 +186,17 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
             }
 
             // Shortest Game
-            const isDecisive = ['win', 'checkmated', 'resigned', 'timeout', 'time'].includes(userSide.result);
-            if (isDecisive && moveCount >= 2) {
+            // Strictly exclude abandoned/aborted games and 0-move games
+            const invalidShortResults = ['abandoned', 'aborted', 'unknown'];
+            if (!invalidShortResults.includes(userSide.result) && moveCount > 0) {
+                // Also optionally ignore draws < 2 moves if you want strictly played games
                 if (!shortestGame || moveCount < shortestGame.moves) {
                     shortestGame = gameData;
                 }
             }
 
             // Fastest Win
-            if (result === 'win' && moveCount >= 2) {
+            if (result === 'win' && moveCount > 0) {
                 if (!fastestWin || moveCount < (fastestWin as SpeedHighlight).moves) {
                     fastestWin = {
                         opponent: opponentSide.username,
