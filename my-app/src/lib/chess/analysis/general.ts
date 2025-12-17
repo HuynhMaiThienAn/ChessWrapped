@@ -22,11 +22,26 @@ const formatResult = (result: string): string => {
     }
 };
 
+const getPieceFromMove = (move: string): string => {
+    // Clean the move string of +, #, x
+    const cleanMove = move.replace(/[+#x]/g, '');
+
+    if (cleanMove.startsWith('N')) return 'Knight';
+    if (cleanMove.startsWith('B')) return 'Bishop';
+    if (cleanMove.startsWith('R')) return 'Rook';
+    if (cleanMove.startsWith('Q')) return 'Queen';
+    if (cleanMove.startsWith('K')) return 'King'; // Discovered checkmate by King move
+    if (cleanMove.startsWith('O')) return 'Rook'; // Castling checkmate
+    return 'Pawn';
+};
+
 export function analyzeGeneral(games: ChessGame[], username: string) {
     let wins = 0;
     let losses = 0;
     let draws = 0;
     let totalSeconds = 0;
+
+    const checkmateCounts: Record<string, number> = {};
 
     const variantCounts: Record<string, number> = {};
     const lowerUsername = username.toLowerCase();
@@ -50,6 +65,23 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
         const isWhite = game.white.username.toLowerCase() === lowerUsername;
         const userSide = isWhite ? game.white : game.black;
         const result = userSide.result;
+
+        if (userSide.result === 'checkmated' && game.pgn) {
+            // Remove comments/timestamps and result (1-0)
+            const cleanPgn = game.pgn
+                .replace(/\{[^}]+\}/g, '')
+                .replace(/1-0|0-1|1\/2-1\/2/g, '')
+                .trim();
+
+            // Find all moves ending in # (Checkmate)
+            const moves = cleanPgn.split(/\s+/);
+            const mateMove = moves.find(m => m.includes('#'));
+
+            if (mateMove) {
+                const piece = getPieceFromMove(mateMove);
+                checkmateCounts[piece] = (checkmateCounts[piece] || 0) + 1;
+            }
+        }
 
         // --- STREAKS & STATS ---
         if (result === 'win') {
@@ -145,6 +177,9 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
         longestDailyStreak,
         winMethods: sortMethods(winMethods),
         lossMethods: sortMethods(lossMethods),
-        drawMethods: sortMethods(drawMethods)
+        drawMethods: sortMethods(drawMethods),
+        checkmateByPiece: Object.entries(checkmateCounts)
+            .map(([piece, count]) => ({ piece, count }))
+            .sort((a, b) => b.count - a.count)
     };
 }

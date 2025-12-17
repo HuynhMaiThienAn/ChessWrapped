@@ -29,6 +29,8 @@ export interface GameStats {
     longestLossStreak: number;
     longestDailyStreak: number;
 
+    checkmateByPiece: { piece: string; count: number }[];
+
     eloChange: {
         Blitz: number;
         Rapid: number;
