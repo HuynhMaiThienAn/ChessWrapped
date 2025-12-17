@@ -38,19 +38,21 @@ const calculateMoveCount = (pgn: string): number => {
     if (!pgn) return 0;
 
     let clean = pgn
-        .replace(/\{[^}]+\}/g, '')     // Remove comments/timestamps {[%clk...]}
-        .replace(/\([^)]+\)/g, '')     // Remove variations (...)
-        .replace(/\$\d+/g, '')         // Remove NAGs ($1, $2...)
-        .replace(/\d+\.+/g, ' ')       // Remove move numbers (1. or 1...)
-        .replace(/(1-0|0-1|1\/2-1\/2|\*)$/, '') // Remove result at end
+        .replace(/\{[^}]+\}/g, '')     // Remove comments/timestamps
+        .replace(/\([^)]+\)/g, '')     // Remove variations
+        .replace(/\$\d+/g, '')         // Remove NAGs
+        .replace(/\d+\.+/g, ' ')       // Remove move numbers
+        .replace(/(1-0|0-1|1\/2-1\/2|\*)$/, '') // Remove result
         .trim();
 
-    // Split by whitespace and filter empty strings
     const tokens = clean.split(/\s+/).filter(t => t.length > 0);
-
-    // Total plies (half-moves) / 2 = Full Moves. Round up (e.g. 3 plies = 2 moves)
     return Math.ceil(tokens.length / 2);
 };
+
+// Types for local trackers
+type GameHighlight = { opponent: string; moves: number; result: string; date: string; url: string; };
+type UpsetHighlight = { opponent: string; ratingDiff: number; myElo: number; opponentElo: number; date: string; url: string; };
+type SpeedHighlight = { opponent: string; moves: number; date: string; url: string; };
 
 export function analyzeGeneral(games: ChessGame[], username: string) {
     let wins = 0;
@@ -58,11 +60,12 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
     let draws = 0;
     let totalSeconds = 0;
 
-    // Trackers for Highlights
-    let longestGame: { moves: any; opponent?: string; result?: string; date?: string; url?: string; } | null = null;
-    let shortestGame: { moves: any; opponent?: string; result?: string; date?: string; url?: string; } | null = null;
-    let biggestUpset: { ratingDiff: any; opponent?: string; myElo?: number; opponentElo?: number; date?: string; url?: string; } | null = null;
-    let fastestWin: { moves: any; opponent?: string; result?: string; date?: string; url?: string; } | null = null;
+    // Trackers for Highlights (Initialized as undefined to match GameStats interface)
+    let longestGame: GameHighlight | undefined = undefined;
+    let shortestGame: GameHighlight | undefined = undefined;
+    let biggestUpset: UpsetHighlight | undefined = undefined;
+    let fastestWin: SpeedHighlight | undefined = undefined;
+
     const castling = { kingside: 0, queenside: 0, noCastle: 0 };
 
     const checkmateCounts: Record<string, number> = {};
@@ -88,7 +91,7 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
         const opponentSide = isWhite ? game.black : game.white;
         const result = userSide.result;
 
-        // --- PRE-CALCULATE MOVE COUNT (Used for multiple stats) ---
+        // --- PRE-CALCULATE MOVE COUNT ---
         let moveCount = 0;
         if (game.pgn) {
             moveCount = calculateMoveCount(game.pgn);
@@ -166,7 +169,6 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
             }
 
             // Shortest Game
-            // Strictly check for decisive games (not aborted/drawn) and > 1 move
             const isDecisive = ['win', 'checkmated', 'resigned', 'timeout', 'time'].includes(userSide.result);
             if (isDecisive && moveCount >= 2) {
                 if (!shortestGame || moveCount < shortestGame.moves) {
@@ -176,8 +178,13 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
 
             // Fastest Win
             if (result === 'win' && moveCount >= 2) {
-                if (!fastestWin || moveCount < fastestWin.moves) {
-                    fastestWin = gameData;
+                if (!fastestWin || moveCount < (fastestWin as SpeedHighlight).moves) {
+                    fastestWin = {
+                        opponent: opponentSide.username,
+                        moves: moveCount,
+                        date: new Date(game.end_time * 1000).toLocaleDateString(),
+                        url: game.url
+                    };
                 }
             }
         }
@@ -188,7 +195,6 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
             const moves = clean.split(/\s+/);
             let castled = false;
             for (let i = 0; i < moves.length; i++) {
-                // If White, indices 0, 2, 4... If Black, 1, 3, 5...
                 const isUserMove = isWhite ? (i % 2 === 0) : (i % 2 !== 0);
                 if (isUserMove) {
                     if (moves[i] === 'O-O') {
@@ -205,7 +211,7 @@ export function analyzeGeneral(games: ChessGame[], username: string) {
             if (!castled) castling.noCastle++;
         }
 
-        // --- TIME & DATES ---
+        // --- TIME ---
         if (game.end_time) {
             const dayDate = new Date(game.end_time * 1000).toISOString().split('T')[0];
             uniqueDays.add(dayDate);
