@@ -12,6 +12,10 @@ export interface GameStats {
     draws: number;
     winRate: number;
 
+    winMethods: { name: string; count: number }[];
+    lossMethods: { name: string; count: number }[];
+    drawMethods: { name: string; count: number }[];
+
     // Elo
     eloHistory: {
         date: string;
@@ -20,6 +24,27 @@ export interface GameStats {
         Rapid?: number;
         Bullet?: number;
     }[];
+
+    longestGame?: {
+        opponent: string;
+        moves: number;
+        result: string;
+        date: string;
+        url: string;
+    };
+    shortestGame?: {
+        opponent: string;
+        moves: number;
+        result: string;
+        date: string;
+        url: string;
+    };
+
+    longestWinStreak: number;
+    longestLossStreak: number;
+    longestDailyStreak: number;
+
+    checkmateByPiece: { piece: string; count: number }[];
 
     eloChange: {
         Blitz: number;
