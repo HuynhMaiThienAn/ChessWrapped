@@ -80,14 +80,13 @@ export async function fetchUserGames(username: string, year: string): Promise<Ch
                 allGames.push(...data.games);
 
                 // 3. UPSERT TO DATABASE
-                await db.from('game_archives').upsert({
+                await (db.from('game_archives') as any).upsert({
                     username: username,
                     year: year,
                     month: month,
                     games: data.games,
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'username, year, month' });
-
                 await sleep(200);
 
             } catch (err: any) {

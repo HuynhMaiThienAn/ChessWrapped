@@ -1,12 +1,4 @@
-import { ChessGame } from "@/types/game";
-
-export type Json =
-    | string
-    | number
-    | boolean
-    | null
-    | { [key: string]: Json | undefined }
-    | Json[]
+import { ChessGame } from '@/types/game';
 
 export interface Database {
     public: {
