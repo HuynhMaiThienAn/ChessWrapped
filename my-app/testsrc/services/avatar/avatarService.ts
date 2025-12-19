@@ -1,8 +1,7 @@
 import { apiClient } from '../api/client';
 
 /**
- * Batched fetching of avatars (if you need to fetch many friends)
- * Chess.com doesn't have a batch endpoint, so we run parallel requests.
+ * Batched fetching of avatars
  */
 export async function fetchAvatars(usernames: string[]): Promise<Record<string, string>> {
     const uniqueUsers = Array.from(new Set(usernames));
